@@ -2,11 +2,19 @@
 
 A full-stack MERN (MongoDB, Express, React/Next.js, Node.js) application for managing tax queries with role-based access (Admin, Consultant, Customer).
 
+---
+
+## 🤝 Collaboration
+
+Want to contribute? See the [Contributing](#contributing) section below for how to get started!
+
+---
+
 ## Features
 - User authentication and role management (Admin, Consultant, Customer)
 - Query creation, assignment, and resolution
 - Consultant and admin responses
-- File upload support (coming soon)
+- File upload support (attach files to responses)
 - Dockerized setup for easy deployment
 
 ## Tech Stack
@@ -53,7 +61,38 @@ A full-stack MERN (MongoDB, Express, React/Next.js, Node.js) application for man
 - Mark queries as resolved
 
 ## Contributing
-Pull requests are welcome! For major changes, please open an issue first to discuss what you would like to change.
+
+We welcome contributions from everyone! To get started:
+
+1. **Fork the repository** on GitHub.
+2. **Clone your fork** locally:
+   ```sh
+   git clone https://github.com/YOUR_USERNAME/taxtooter-fullstack.git
+   cd taxtooter-fullstack
+   ```
+3. **Create a new branch** for your feature or fix:
+   ```sh
+   git checkout -b feature/your-feature-name
+   ```
+4. **Make your changes** (see code style notes below).
+5. **Commit and push** your branch:
+   ```sh
+   git add .
+   git commit -m "Describe your change"
+   git push origin feature/your-feature-name
+   ```
+6. **Open a Pull Request** from your branch to the `main` branch of this repo.
+7. **Describe your changes** clearly in the PR and reference any related issues.
+8. **Participate in code review** and address any feedback.
+
+### Code Style & Guidelines
+- Use Prettier/ESLint for formatting (if configured).
+- Keep code modular and well-commented.
+- Use descriptive commit messages.
+- Discuss large changes in [Issues](https://github.com/Taxtooter/taxtooter-fullstack/issues) before starting.
+
+### Need Help?
+- Open an issue for questions, bugs, or feature requests.
 
 ## License
 [MIT](LICENSE) 

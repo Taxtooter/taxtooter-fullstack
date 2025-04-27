@@ -1,3 +1,8 @@
+// To add new pages, create a file in frontend/pages/ (e.g., pages/your-feature.tsx).
+// To add new components, use frontend/components/.
+// Follow the contribution process in the README: fork, branch, commit, push, and open a pull request.
+// Use clear commit messages and keep code modular and well-commented.
+
 import { ReactNode } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
