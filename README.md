@@ -4,6 +4,15 @@ A full-stack MERN (MongoDB, Express, React/Next.js, Node.js) application for man
 
 ---
 
+## 🚀 API Documentation (Swagger)
+
+- The backend API is fully documented using Swagger (OpenAPI 3.0).
+- Access the interactive API docs at: [http://localhost:5000/api-docs](http://localhost:5000/api-docs)
+- All major endpoints (auth, users, queries) are documented.
+- To contribute to the API docs, add [Swagger JSDoc](https://swagger.io/specification/) comments above your route handlers in the backend code.
+
+---
+
 ## 🤝 Collaboration
 
 Want to contribute? See the [Contributing](#contributing) section below for how to get started!
@@ -52,6 +61,7 @@ Want to contribute? See the [Contributing](#contributing) section below for how 
 5. **Access the app:**
    - Frontend: [http://localhost:3000](http://localhost:3000)
    - Backend API: [http://localhost:5000/api](http://localhost:5000/api)
+   - API Docs: [http://localhost:5000/api-docs](http://localhost:5000/api-docs)
 
 ## Usage
 - Register as a customer, consultant, or admin

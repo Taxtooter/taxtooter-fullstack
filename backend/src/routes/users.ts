@@ -4,7 +4,16 @@ import { authenticate, authorize } from '../middleware/auth';
 
 const router = express.Router();
 
-// Get all consultants (Admin only)
+/**
+ * @swagger
+ * /api/users/consultants:
+ *   get:
+ *     summary: Get all consultants (admin only)
+ *     tags: [Users]
+ *     responses:
+ *       200:
+ *         description: List of consultants
+ */
 router.get('/consultants', authenticate, authorize(['admin']), async (req, res) => {
   try {
     const consultants = await User.find({ role: 'consultant' }).select('_id name email');

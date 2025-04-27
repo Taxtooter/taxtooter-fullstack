@@ -6,7 +6,31 @@ import { logger } from '../utils/logger';
 
 const router = express.Router();
 
-// Register new user
+/**
+ * @swagger
+ * /api/auth/register:
+ *   post:
+ *     summary: Register a new user
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               name:
+ *                 type: string
+ *               role:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: User registered
+ */
 router.post('/register', async (req, res) => {
   try {
     const { email, password, name, role } = req.body;
@@ -58,7 +82,27 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// Login user
+/**
+ * @swagger
+ * /api/auth/login:
+ *   post:
+ *     summary: Login a user
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: User logged in
+ */
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -102,7 +146,18 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Get current user
+/**
+ * @swagger
+ * /api/auth/me:
+ *   get:
+ *     summary: Get current user info
+ *     tags: [Auth]
+ *     responses:
+ *       200:
+ *         description: Current user info
+ *       401:
+ *         description: Authentication required
+ */
 router.get('/me', authenticate, async (req: AuthRequest, res) => {
   try {
     if (!req.user) {
