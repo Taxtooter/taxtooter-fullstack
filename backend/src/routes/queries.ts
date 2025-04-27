@@ -57,7 +57,25 @@ router.get('/my-queries', authenticate, authorize(['customer']), async (req: Aut
   }
 });
 
-// Get single query by ID
+/**
+ * @swagger
+ * /api/queries/{id}:
+ *   get:
+ *     summary: Get a single query by ID
+ *     tags: [Queries]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The query ID
+ *     responses:
+ *       200:
+ *         description: Query details
+ *       404:
+ *         description: Query not found
+ */
 router.get('/:id', authenticate, async (req: AuthRequest, res) => {
   try {
     logger.info('Fetching query with ID', { queryId: req.params.id });
@@ -95,7 +113,27 @@ router.get('/:id', authenticate, async (req: AuthRequest, res) => {
   }
 });
 
-// Create new query (Customer only)
+/**
+ * @swagger
+ * /api/queries:
+ *   post:
+ *     summary: Create a new query (customer only)
+ *     tags: [Queries]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Query created
+ */
 router.post('/', authenticate, authorize(['customer']), async (req: AuthRequest, res) => {
   try {
     if (!req.user) {
@@ -119,7 +157,16 @@ router.post('/', authenticate, authorize(['customer']), async (req: AuthRequest,
   }
 });
 
-// Get all queries (Admin only)
+/**
+ * @swagger
+ * /api/queries:
+ *   get:
+ *     summary: Get all queries (admin only)
+ *     tags: [Queries]
+ *     responses:
+ *       200:
+ *         description: List of queries
+ */
 router.get('/', authenticate, authorize(['admin']), async (req: AuthRequest, res) => {
   try {
     logger.info('Fetching all queries for admin');
@@ -166,7 +213,35 @@ router.post('/:id/assign', authenticate, authorize(['admin']), async (req: AuthR
   }
 });
 
-// Respond to query (consultant, admin, or customer)
+/**
+ * @swagger
+ * /api/queries/{id}/respond:
+ *   post:
+ *     summary: Respond to a query (consultant, admin, or customer)
+ *     tags: [Queries]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The query ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               response:
+ *                 type: string
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Response added to query
+ */
 router.post('/:id/respond', authenticate, authorize(['consultant', 'admin', 'customer']), upload.single('file'), async (req: AuthRequest, res) => {
   try {
     if (!req.user) {

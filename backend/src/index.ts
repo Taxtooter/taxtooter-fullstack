@@ -6,6 +6,10 @@ import authRoutes from './routes/auth';
 import queryRoutes from './routes/queries';
 import usersRouter from './routes/users';
 import { errorHandler } from './middleware/errorHandler';
+import uploadRouter from './routes/upload';
+import path from 'path';
+import swaggerUi from 'swagger-ui-express';
+import swaggerSpec from './swagger';
 
 dotenv.config();
 
@@ -22,10 +26,11 @@ app.use('/api/queries', queryRoutes);
 app.use('/api/users', usersRouter);
 
 // Register upload route and serve static files
-import uploadRouter from './routes/upload';
-import path from 'path';
 app.use('/api/upload', uploadRouter);
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
+// Swagger API docs
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Error handling middleware
 app.use(errorHandler);
