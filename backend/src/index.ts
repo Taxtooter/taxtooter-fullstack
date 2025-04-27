@@ -21,6 +21,12 @@ app.use('/api/auth', authRoutes);
 app.use('/api/queries', queryRoutes);
 app.use('/api/users', usersRouter);
 
+// Register upload route and serve static files
+import uploadRouter from './routes/upload';
+import path from 'path';
+app.use('/api/upload', uploadRouter);
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
 // Error handling middleware
 app.use(errorHandler);
 

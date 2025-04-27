@@ -45,6 +45,12 @@ export default function QueryDetail() {
   const [assignLoading, setAssignLoading] = useState(false);
   const [showResolveModal, setShowResolveModal] = useState(false);
 
+  // File upload state
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+  const [uploadedFile, setUploadedFile] = useState<{ filename: string; path: string } | null>(null);
+
   useEffect(() => {
     const fetchQuery = async () => {
       if (!id) return;
@@ -156,6 +162,36 @@ export default function QueryDetail() {
     }
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedFile(e.target.files[0]);
+    }
+  };
+
+  const handleFileUpload = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedFile) return;
+    setUploading(true);
+    setUploadError('');
+    setUploadedFile(null);
+    try {
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      const res = await axios.post('/api/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      setUploadedFile(res.data);
+      setSelectedFile(null);
+    } catch (err: any) {
+      setUploadError(err.response?.data?.message || 'File upload failed');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   if (loading) {
     return (
       <Layout>
@@ -198,7 +234,7 @@ export default function QueryDetail() {
             <span className={`px-3 py-1 text-sm font-medium rounded-full ${
               query.status === 'open' ? 'bg-yellow-100 text-yellow-800' :
               query.status === 'assigned' ? 'bg-blue-100 text-blue-800' :
-              'bg-green-100 text-green-800'
+              query.status === 'resolved' ? 'bg-green-100 text-green-800' : ''
             }`}>
               {query.status}
             </span>
@@ -303,6 +339,24 @@ export default function QueryDetail() {
                   </option>
                 ))}
               </select>
+            </div>
+          )}
+        </div>
+
+        {/* File Upload Section */}
+        <div className="card">
+          <h2 className="text-lg font-semibold mb-2">Upload a File</h2>
+          <form onSubmit={handleFileUpload} className="flex flex-col gap-2">
+            <input type="file" onChange={handleFileChange} />
+            <button type="submit" className="btn btn-primary w-fit" disabled={uploading || !selectedFile}>
+              {uploading ? 'Uploading...' : 'Upload'}
+            </button>
+          </form>
+          {uploadError && <div className="text-red-500 mt-2">{uploadError}</div>}
+          {uploadedFile && (
+            <div className="mt-2">
+              <span className="text-green-600">File uploaded: </span>
+              <a href={uploadedFile.path} target="_blank" rel="noopener noreferrer" className="underline text-blue-600">{uploadedFile.filename}</a>
             </div>
           )}
         </div>
