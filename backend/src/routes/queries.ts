@@ -4,8 +4,22 @@ import Query from '../models/Query';
 import { authenticate, authorize, AuthRequest } from '../middleware/auth';
 import User from '../models/User';
 import { logger } from '../utils/logger';
+import multer from 'multer';
+import path from 'path';
 
 const router = express.Router();
+
+const storage = multer.diskStorage({
+  // @ts-ignore
+  destination: (req, file, cb) => {
+    cb(null, path.join(__dirname, '../../uploads'));
+  },
+  // @ts-ignore
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + '-' + file.originalname);
+  }
+});
+const upload = multer({ storage });
 
 // Get assigned queries (Consultant)
 router.get('/assigned', authenticate, authorize(['consultant']), async (req: AuthRequest, res) => {
@@ -153,7 +167,7 @@ router.post('/:id/assign', authenticate, authorize(['admin']), async (req: AuthR
 });
 
 // Respond to query (consultant, admin, or customer)
-router.post('/:id/respond', authenticate, authorize(['consultant', 'admin', 'customer']), async (req: AuthRequest, res) => {
+router.post('/:id/respond', authenticate, authorize(['consultant', 'admin', 'customer']), upload.single('file'), async (req: AuthRequest, res) => {
   try {
     if (!req.user) {
       logger.warn('No user found in request');
@@ -199,6 +213,10 @@ router.post('/:id/respond', authenticate, authorize(['consultant', 'admin', 'cus
       return res.status(403).json({ message: 'Not authorized to respond to this query' });
     }
 
+    // @ts-ignore
+    const file = req.file;
+    const fileInfo = file ? { filename: file.filename, path: `/uploads/${file.filename}` } : null;
+
     // Add the response to the responses array
     const response = {
       user: {
@@ -207,7 +225,8 @@ router.post('/:id/respond', authenticate, authorize(['consultant', 'admin', 'cus
         role: req.user.role
       },
       message: req.body.response,
-      createdAt: new Date()
+      createdAt: new Date(),
+      file: fileInfo
     };
 
     if (!query.responses) {
@@ -215,9 +234,8 @@ router.post('/:id/respond', authenticate, authorize(['consultant', 'admin', 'cus
     }
     query.responses.push(response);
 
-    // No longer auto-resolve on consultant response
     await query.save();
-    logger.info('Response added successfully to query', { queryId: query._id });
+    logger.info('Response with file added successfully to query', { queryId: query._id });
     res.json(query);
   } catch (error) {
     logger.error('Error responding to query', error);

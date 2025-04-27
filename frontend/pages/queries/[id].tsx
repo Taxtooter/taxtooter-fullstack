@@ -45,11 +45,8 @@ export default function QueryDetail() {
   const [assignLoading, setAssignLoading] = useState(false);
   const [showResolveModal, setShowResolveModal] = useState(false);
 
-  // File upload state
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const [uploadError, setUploadError] = useState('');
-  const [uploadedFile, setUploadedFile] = useState<{ filename: string; path: string } | null>(null);
+  // Add file state for response form
+  const [responseFile, setResponseFile] = useState<File | null>(null);
 
   useEffect(() => {
     const fetchQuery = async () => {
@@ -92,19 +89,26 @@ export default function QueryDetail() {
     fetchConsultants();
   }, [user]);
 
+  const handleResponseFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setResponseFile(e.target.files[0]);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!query || !response.trim()) return;
 
     try {
-      await axios.post(`/api/queries/${query._id}/respond`, {
-        response: response.trim()
-      }, {
+      const formData = new FormData();
+      formData.append('response', response.trim());
+      if (responseFile) formData.append('file', responseFile);
+      await axios.post(`/api/queries/${query._id}/respond`, formData, {
         headers: {
+          'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${localStorage.getItem('token')}`
         }
       });
-      
       // Refresh the query to show the new response
       const updatedResponse = await axios.get(`/api/queries/${id}`, {
         headers: {
@@ -113,6 +117,7 @@ export default function QueryDetail() {
       });
       setQuery(updatedResponse.data);
       setResponse('');
+      setResponseFile(null);
     } catch (error: any) {
       setError(error.response?.data?.message || 'Error submitting response');
     }
@@ -159,36 +164,6 @@ export default function QueryDetail() {
       setQuery(updatedResponse.data);
     } catch (error: any) {
       setError(error.response?.data?.message || 'Error resolving query');
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setSelectedFile(e.target.files[0]);
-    }
-  };
-
-  const handleFileUpload = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedFile) return;
-    setUploading(true);
-    setUploadError('');
-    setUploadedFile(null);
-    try {
-      const formData = new FormData();
-      formData.append('file', selectedFile);
-      const res = await axios.post('/api/upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      setUploadedFile(res.data);
-      setSelectedFile(null);
-    } catch (err: any) {
-      setUploadError(err.response?.data?.message || 'File upload failed');
-    } finally {
-      setUploading(false);
     }
   };
 
@@ -278,7 +253,7 @@ export default function QueryDetail() {
             (user?.role === 'customer' && query.customer.email === user.email && query.status !== 'resolved') ||
             (user?.role === 'admin')
           ) && (
-            <form onSubmit={handleSubmit} className="mt-6">
+            <form onSubmit={handleSubmit} className="mt-6" encType="multipart/form-data">
               <div>
                 <label htmlFor="response" className="block text-sm font-medium text-gray-700">
                   {user?.role === 'consultant' ? 'Your Response' : 
@@ -292,8 +267,13 @@ export default function QueryDetail() {
                   rows={4}
                   placeholder={user?.role === 'consultant' ? 'Type your response here...' : 
                              user?.role === 'admin' ? 'Type your comment here...' : 'Type your comment here...'}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:ring-primary"
                 />
+              </div>
+              <div className="mt-2">
+                <label className="block text-sm font-medium text-gray-700">Attach a file (optional):</label>
+                <input type="file" onChange={handleResponseFileChange} />
+                {responseFile && <div className="text-xs text-gray-500 mt-1">Selected: {responseFile.name}</div>}
               </div>
               <div className="mt-4 flex gap-4">
                 <button
@@ -343,48 +323,30 @@ export default function QueryDetail() {
           )}
         </div>
 
-        {/* File Upload Section */}
-        <div className="card">
-          <h2 className="text-lg font-semibold mb-2">Upload a File</h2>
-          <form onSubmit={handleFileUpload} className="flex flex-col gap-2">
-            <input type="file" onChange={handleFileChange} />
-            <button type="submit" className="btn btn-primary w-fit" disabled={uploading || !selectedFile}>
-              {uploading ? 'Uploading...' : 'Upload'}
-            </button>
-          </form>
-          {uploadError && <div className="text-red-500 mt-2">{uploadError}</div>}
-          {uploadedFile && (
-            <div className="mt-2">
-              <span className="text-green-600">File uploaded: </span>
-              <a href={uploadedFile.path} target="_blank" rel="noopener noreferrer" className="underline text-blue-600">{uploadedFile.filename}</a>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Confirmation Modal for Mark as Resolved */}
-      {showResolveModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full">
-            <h2 className="text-lg font-bold mb-2">Confirm Resolution</h2>
-            <p className="mb-4 text-gray-700">Are you sure you want to mark this query as resolved? <b>This action is irreversible.</b></p>
-            <div className="flex justify-end gap-4">
-              <button
-                className="btn border border-gray-300 text-gray-700 bg-white hover:bg-gray-100"
-                onClick={() => setShowResolveModal(false)}
-              >
-                Cancel
-              </button>
-              <button
-                className="btn border border-primary text-primary bg-transparent hover:bg-primary/10"
-                onClick={handleResolve}
-              >
-                Yes, Mark as Resolved
-              </button>
+        {/* Confirmation Modal for Mark as Resolved */}
+        {showResolveModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+            <div className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full">
+              <h2 className="text-lg font-bold mb-2">Confirm Resolution</h2>
+              <p className="mb-4 text-gray-700">Are you sure you want to mark this query as resolved? <b>This action is irreversible.</b></p>
+              <div className="flex justify-end gap-4">
+                <button
+                  className="btn border border-gray-300 text-gray-700 bg-white hover:bg-gray-100"
+                  onClick={() => setShowResolveModal(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="btn border border-primary text-primary bg-transparent hover:bg-primary/10"
+                  onClick={handleResolve}
+                >
+                  Yes, Mark as Resolved
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </Layout>
   );
 } 
