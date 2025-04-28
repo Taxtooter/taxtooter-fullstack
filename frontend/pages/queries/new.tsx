@@ -36,13 +36,13 @@ export default function NewQuery() {
   return (
     <Layout>
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">New Query</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">New Query</h1>
         <form onSubmit={handleSubmit} className="space-y-6">
           {error && (
             <div className="text-red-500 text-sm text-center">{error}</div>
           )}
           <div>
-            <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
               Title
             </label>
             <input
@@ -50,12 +50,12 @@ export default function NewQuery() {
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm p-3"
+              className="input mt-1"
               required
             />
           </div>
           <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
               Description
             </label>
             <textarea
@@ -63,7 +63,7 @@ export default function NewQuery() {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={5}
-              className="mt-1 block w-full border border-gray-300 bg-white p-3 rounded text-gray-700 focus:border-primary focus:ring-primary sm:text-sm"
+              className="input mt-1"
               required
             />
           </div>

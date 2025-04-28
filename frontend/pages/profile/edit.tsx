@@ -42,7 +42,7 @@ export default function EditProfile() {
       setMessage('Profile updated successfully');
       // Only update user context if user exists
       if (user) {
-        updateUser({ ...user, ...formData, password: undefined });
+        updateUser({ ...user, name: formData.name, email: formData.email });
       }
       setFormData({ ...formData, password: '' }); // Clear password field
     } catch (error) {
@@ -56,18 +56,18 @@ export default function EditProfile() {
 
   return (
     <Layout>
-      <div className="max-w-md mx-auto mt-8 p-6 bg-white rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold mb-6">Edit Profile</h1>
+      <div className="max-w-md mx-auto mt-8 p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md dark:text-gray-100">
+        <h1 className="text-2xl font-bold mb-6 dark:text-gray-100">Edit Profile</h1>
         
         {message && (
-          <div className={`mb-4 p-3 rounded ${message.includes('success') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+          <div className={`mb-4 p-3 rounded ${message.includes('success') ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200' : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200'}`}>
             {message}
           </div>
         )}
 
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="name">
+            <label className="block text-gray-700 dark:text-gray-200 text-sm font-bold mb-2" htmlFor="name">
               Name
             </label>
             <input
@@ -76,13 +76,13 @@ export default function EditProfile() {
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              className="input"
               required
             />
           </div>
 
           <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
+            <label className="block text-gray-700 dark:text-gray-200 text-sm font-bold mb-2" htmlFor="email">
               Email
             </label>
             <input
@@ -91,13 +91,13 @@ export default function EditProfile() {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              className="input"
               required
             />
           </div>
 
           <div className="mb-6">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
+            <label className="block text-gray-700 dark:text-gray-200 text-sm font-bold mb-2" htmlFor="password">
               New Password (leave blank to keep current)
             </label>
             <input
@@ -106,7 +106,7 @@ export default function EditProfile() {
               name="password"
               value={formData.password}
               onChange={handleChange}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              className="input"
             />
           </div>
 

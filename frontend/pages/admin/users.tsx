@@ -114,7 +114,7 @@ export default function AdminUsers() {
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold mb-6">User Management</h1>
+        <h1 className="text-2xl font-bold mb-6 dark:text-gray-100">User Management</h1>
         
         {message && (
           <div className={`mb-4 p-3 rounded ${message.includes('success') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
@@ -126,19 +126,19 @@ export default function AdminUsers() {
           <div>Loading...</div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full bg-white">
+            <table className="min-w-full bg-white dark:bg-gray-800">
               <thead>
                 <tr>
-                  <th className="px-6 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  <th className="px-6 py-3 border-b-2 border-gray-200 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-left text-xs font-semibold text-gray-600 dark:text-gray-200 uppercase tracking-wider">
                     Name
                   </th>
-                  <th className="px-6 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  <th className="px-6 py-3 border-b-2 border-gray-200 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-left text-xs font-semibold text-gray-600 dark:text-gray-200 uppercase tracking-wider">
                     Email
                   </th>
-                  <th className="px-6 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  <th className="px-6 py-3 border-b-2 border-gray-200 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-left text-xs font-semibold text-gray-600 dark:text-gray-200 uppercase tracking-wider">
                     Role
                   </th>
-                  <th className="px-6 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  <th className="px-6 py-3 border-b-2 border-gray-200 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-left text-xs font-semibold text-gray-600 dark:text-gray-200 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
@@ -146,19 +146,19 @@ export default function AdminUsers() {
               <tbody>
                 {users.map((user) => (
                   <tr key={user._id}>
-                    <td className="px-6 py-4 border-b border-gray-200">{user.name}</td>
-                    <td className="px-6 py-4 border-b border-gray-200">{user.email}</td>
-                    <td className="px-6 py-4 border-b border-gray-200">{user.role}</td>
-                    <td className="px-6 py-4 border-b border-gray-200">
+                    <td className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100">{user.name}</td>
+                    <td className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100">{user.email}</td>
+                    <td className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100">{user.role}</td>
+                    <td className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                       <button
                         onClick={() => handleEdit(user)}
-                        className="bg-blue-500 text-white px-3 py-1 rounded mr-2"
+                        className="bg-blue-500 text-white px-3 py-1 rounded mr-2 dark:hover:bg-blue-600"
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => handleDelete(user._id, user.role)}
-                        className="bg-red-500 text-white px-3 py-1 rounded"
+                        className="bg-red-500 text-white px-3 py-1 rounded dark:hover:bg-red-600"
                       >
                         Delete
                       </button>
@@ -172,38 +172,38 @@ export default function AdminUsers() {
 
         {editingUser && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-            <div className="bg-white p-6 rounded-lg w-96">
-              <h2 className="text-xl font-bold mb-4">Edit User</h2>
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg w-96">
+              <h2 className="text-xl font-bold mb-4 dark:text-gray-100">Edit User</h2>
               <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2">
+                <label className="block text-gray-700 dark:text-gray-200 text-sm font-bold mb-2">
                   Name
                 </label>
                 <input
                   type="text"
                   value={editForm.name}
                   onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-100 dark:bg-gray-900 border-gray-300 dark:border-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2">
+                <label className="block text-gray-700 dark:text-gray-200 text-sm font-bold mb-2">
                   Email
                 </label>
                 <input
                   type="email"
                   value={editForm.email}
                   onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-100 dark:bg-gray-900 border-gray-300 dark:border-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2">
+                <label className="block text-gray-700 dark:text-gray-200 text-sm font-bold mb-2">
                   Role
                 </label>
                 <select
                   value={editForm.role}
                   onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-100 dark:bg-gray-900 border-gray-300 dark:border-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                 >
                   <option value="customer">Customer</option>
                   <option value="consultant">Consultant</option>

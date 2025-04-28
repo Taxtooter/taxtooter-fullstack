@@ -42,14 +42,14 @@ export default function QueryCard({ query, showActions = false, onAssign, consul
     >
       <div className="flex justify-between items-start">
         <div className="w-full">
-          <h3 className="text-lg font-medium text-gray-900">{query.title}</h3>
-          <div className="mt-2 text-sm text-gray-500">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">{query.title}</h3>
+          <div className="mt-2 text-sm text-gray-500 dark:text-gray-300">
             <span className="font-medium">Created By:</span> {query.customer?.name}
           </div>
-          <div className="mt-1 text-sm text-gray-500">
+          <div className="mt-1 text-sm text-gray-500 dark:text-gray-300">
             <span className="font-medium">Consultant:</span> {query.consultant?.name || 'N/A'}
           </div>
-          <div className="border-t mt-4 pt-2 flex items-center gap-4 text-xs text-gray-400">
+          <div className="border-t mt-4 pt-2 flex items-center gap-4 text-xs text-gray-400 dark:text-gray-400 border-gray-200 dark:border-gray-700">
             <span>🗓️ <span className="font-medium">Created:</span> {formatDate(query.createdAt)}</span>
             <span>|</span>
             <span>🕒 <span className="font-medium">Updated:</span> {formatDate(query.updatedAt)}</span>
@@ -62,7 +62,7 @@ export default function QueryCard({ query, showActions = false, onAssign, consul
 
       {showActions && query.status === 'open' && consultants && (
         <div className="mt-4">
-          <label htmlFor={`consultant-${query._id}`} className="block text-sm font-medium text-gray-700">
+          <label htmlFor={`consultant-${query._id}`} className="block text-sm font-medium text-gray-700 dark:text-gray-200">
             Assign to Consultant
           </label>
           <select
