@@ -10,7 +10,7 @@ const nextConfig = {
       {
         source: '/api/:path*',
         destination: 'http://backend:5000/api/:path*',
-      },
+      }
     ];
   },
 };

@@ -2,44 +2,20 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../../components/Layout';
 import { useAuth } from '../../context/AuthContext';
-import axios from 'axios';
-
-interface Query {
-  _id: string;
-  title: string;
-  description: string;
-  status: string;
-  customer: {
-    name: string;
-    email: string;
-  };
-  consultant?: {
-    name: string;
-    email: string;
-    _id?: string;
-  };
-  responses?: {
-    user: {
-      name: string;
-    };
-    message: string;
-    createdAt: string;
-  }[];
-}
-
-interface Consultant {
-  _id: string;
-  name: string;
-  email: string;
-}
+import api from '../../lib/api';
+import { logger } from '../../lib/logger';
+import { Query, Consultant, User } from '../../types';
+import { toast } from 'react-hot-toast';
+import QueryStatusBadge from '../../components/QueryStatusBadge';
 
 export default function QueryDetail() {
   const router = useRouter();
   const { id } = router.query;
   const { user } = useAuth();
   const [query, setQuery] = useState<Query | null>(null);
+  const [consultant, setConsultant] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const [response, setResponse] = useState('');
   const [consultants, setConsultants] = useState<Consultant[]>([]);
   const [assignLoading, setAssignLoading] = useState(false);
@@ -50,24 +26,22 @@ export default function QueryDetail() {
 
   useEffect(() => {
     const fetchQuery = async () => {
-      if (!id) return;
-      
       try {
-        const response = await axios.get(`/api/queries/${id}`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
-          }
-        });
+        setLoading(true);
+        const response = await api.get(`/api/queries/${id}`);
         setQuery(response.data);
-        setError('');
-      } catch (error: any) {
-        setError(error.response?.data?.message || 'Error fetching query');
+        console.log('Fetched query:', response.data);
+      } catch (err) {
+        logger.error('Error fetching query', err);
+        setError('Failed to load query details');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchQuery();
+    if (id) {
+      fetchQuery();
+    }
   }, [id]);
 
   useEffect(() => {
@@ -75,7 +49,7 @@ export default function QueryDetail() {
     const fetchConsultants = async () => {
       if (user?.role === 'admin') {
         try {
-          const res = await axios.get('/api/users/consultants', {
+          const res = await api.get('/api/users/consultants', {
             headers: {
               Authorization: `Bearer ${localStorage.getItem('token')}`
             }
@@ -103,14 +77,14 @@ export default function QueryDetail() {
       const formData = new FormData();
       formData.append('response', response.trim());
       if (responseFile) formData.append('file', responseFile);
-      await axios.post(`/api/queries/${query._id}/respond`, formData, {
+      await api.post(`/api/queries/${query._id}/respond`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${localStorage.getItem('token')}`
         }
       });
       // Refresh the query to show the new response
-      const updatedResponse = await axios.get(`/api/queries/${id}`, {
+      const updatedResponse = await api.get(`/api/queries/${id}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`
         }
@@ -127,20 +101,21 @@ export default function QueryDetail() {
     if (!query) return;
     setAssignLoading(true);
     try {
-      await axios.post(`/api/queries/${query._id}/assign`, { consultantId }, {
+      await api.post(`/api/queries/${query._id}/assign`, { consultantId }, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`
         }
       });
+      toast.success('Consultant assigned successfully');
       // Refresh query
-      const updatedResponse = await axios.get(`/api/queries/${id}`, {
+      const updatedResponse = await api.get(`/api/queries/${id}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`
         }
       });
       setQuery(updatedResponse.data);
     } catch (err) {
-      // Optionally show error
+      toast.error('Failed to assign consultant');
     } finally {
       setAssignLoading(false);
     }
@@ -150,48 +125,45 @@ export default function QueryDetail() {
     if (!query) return;
     setShowResolveModal(false);
     try {
-      await axios.post(`/api/queries/${query._id}/resolve`, {}, {
+      await api.post(`/api/queries/${query._id}/resolve`, {}, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`
         }
       });
+      toast.success('Query resolved successfully');
       // Refresh the query to show the new status
-      const updatedResponse = await axios.get(`/api/queries/${id}`, {
+      const updatedResponse = await api.get(`/api/queries/${id}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`
         }
       });
       setQuery(updatedResponse.data);
     } catch (error: any) {
-      setError(error.response?.data?.message || 'Error resolving query');
+      toast.error(error.response?.data?.message || 'Failed to resolve query');
     }
   };
 
   if (loading) {
     return (
       <Layout>
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <div className="container mx-auto px-4 py-8">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+          </div>
         </div>
       </Layout>
     );
   }
 
-  if (error) {
+  if (error || !query) {
     return (
       <Layout>
-        <div className="flex justify-center items-center h-64">
-          <div className="text-red-500">{error}</div>
-        </div>
-      </Layout>
-    );
-  }
-
-  if (!query) {
-    return (
-      <Layout>
-        <div className="flex justify-center items-center h-64">
-          <div className="text-gray-500">Query not found</div>
+        <div className="container mx-auto px-4 py-8">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            {error || 'Query not found'}
+          </div>
         </div>
       </Layout>
     );
@@ -199,153 +171,76 @@ export default function QueryDetail() {
 
   return (
     <Layout>
-      <div className="max-w-4xl mx-auto space-y-6">
-        <div className="card">
-          <div className="flex justify-between items-start">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">{query.title}</h1>
-              <p className="mt-2 text-gray-600">{query.description}</p>
-            </div>
-            <span className={`px-3 py-1 text-sm font-medium rounded-full ${
-              query.status === 'open' ? 'bg-yellow-100 text-yellow-800' :
-              query.status === 'assigned' ? 'bg-blue-100 text-blue-800' :
-              query.status === 'resolved' ? 'bg-green-100 text-green-800' : ''
-            }`}>
-              {query.status}
-            </span>
+      <div className="container mx-auto px-4 py-8">
+        <div className="bg-white shadow-md rounded-lg p-6">
+          <h1 className="text-2xl font-bold mb-4">{query.title}</h1>
+          <div className="mb-4">
+            <p className="text-gray-600">{query.description}</p>
           </div>
-
-          <div className="mt-6 space-y-4">
-            <div>
-              <span className="font-medium text-gray-700">Customer:</span>
-              <span className="ml-2 text-gray-600">{query.customer.name}</span>
-            </div>
-            {query.consultant && (
-              <div>
-                <span className="font-medium text-gray-700">Consultant:</span>
-                <span className="ml-2 text-gray-600">{query.consultant.name}</span>
-              </div>
-            )}
+          <div className="mb-4">
+            <span className="text-sm text-gray-500">Status: </span>
+            <QueryStatusBadge query={query} />
           </div>
-
+          <div className="mb-4">
+            <span className="text-sm text-gray-500">Customer: </span>
+            <span className="font-medium">{query.customer?.name} ({query.customer?.email})</span>
+          </div>
+          {query.consultant && (
+            <div className="mb-4">
+              <span className="text-sm text-gray-500">Consultant: </span>
+              <span className="font-medium">{query.consultant.name} ({query.consultant.email})</span>
+            </div>
+          )}
           {query.responses && query.responses.length > 0 && (
-            <div className="mt-6">
-              <h2 className="text-lg font-medium text-gray-900 mb-4">Responses</h2>
-              <div className="space-y-4">
-                {query.responses.map((response, index) => (
-                  <div key={index} className="bg-gray-50 p-4 rounded-lg">
-                    <div className="flex justify-between items-start">
-                      <span className="font-medium text-gray-700">{response.user.name}</span>
-                      <span className="text-sm text-gray-500">
-                        {new Date(response.createdAt).toLocaleString()}
-                      </span>
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold mb-2">Responses</h2>
+              <div className="space-y-2">
+                {query.responses.map((resp, idx) => (
+                  <div key={idx} className="bg-gray-50 p-3 rounded">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="font-medium">{resp.user?.name}</span>
+                      <span className="text-xs text-gray-400">{new Date(resp.createdAt).toLocaleString()}</span>
                     </div>
-                    <p className="mt-2 text-gray-600">{response.message}</p>
+                    <div className="text-gray-700">{resp.message}</div>
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Response Form */}
-          {(
-            (user?.role === 'consultant' && query.status === 'assigned') ||
-            (user?.role === 'customer' && query.customer.email === user.email && query.status !== 'resolved') ||
-            (user?.role === 'admin')
-          ) && (
-            <form onSubmit={handleSubmit} className="mt-6" encType="multipart/form-data">
-              <div>
-                <label htmlFor="response" className="block text-sm font-medium text-gray-700">
-                  {user?.role === 'consultant' ? 'Your Response' : 
-                   user?.role === 'admin' ? 'Admin Comment' : 'Add a Comment'}
-                </label>
-                <textarea
-                  id="response"
-                  value={response}
-                  onChange={(e) => setResponse(e.target.value)}
-                  required
-                  rows={4}
-                  placeholder={user?.role === 'consultant' ? 'Type your response here...' : 
-                             user?.role === 'admin' ? 'Type your comment here...' : 'Type your comment here...'}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:ring-primary"
-                />
-              </div>
-              <div className="mt-2">
-                <label className="block text-sm font-medium text-gray-700">Attach a file (optional):</label>
-                <input type="file" onChange={handleResponseFileChange} />
-                {responseFile && <div className="text-xs text-gray-500 mt-1">Selected: {responseFile.name}</div>}
-              </div>
-              <div className="mt-4 flex gap-4">
-                <button
-                  type="submit"
-                  className="btn btn-primary"
-                >
-                  {user?.role === 'consultant' ? 'Submit Response' : 
-                   user?.role === 'admin' ? 'Add Admin Comment' : 'Add Comment'}
-                </button>
-                {/* Mark as Resolved Button (Customer or Admin, if not resolved) */}
-                {query.status !== 'resolved' && (
-                  (user?.role === 'admin' || (user?.role === 'customer' && query.customer.email === user.email)) && (
-                    <button
-                      type="button"
-                      onClick={() => setShowResolveModal(true)}
-                      className="btn border border-primary text-primary bg-transparent hover:bg-primary/10"
-                    >
-                      Mark as Resolved
-                    </button>
-                  )
-                )}
-              </div>
-            </form>
-          )}
-
-          {/* Assign to Consultant (Admin only, open queries) */}
-          {user?.role === 'admin' && query.status === 'open' && (
-            <div className="mt-6">
-              <label htmlFor="consultant-select" className="block text-sm font-medium text-gray-700">
-                Assign to Consultant
-              </label>
-              <select
-                id="consultant-select"
-                className="input mt-1"
-                onChange={e => handleAssignConsultant(e.target.value)}
-                defaultValue=""
-                disabled={assignLoading}
-              >
-                <option value="" disabled>Select a consultant</option>
-                {consultants.map(consultant => (
-                  <option key={consultant._id} value={consultant._id}>
-                    {consultant.name} ({consultant.email})
-                  </option>
-                ))}
-              </select>
-            </div>
+          {/* Response form for admin, customer, or assigned consultant, if not resolved */}
+          {query.status !== 'resolved' && user && (
+            (user.role === 'admin' ||
+              (user.role === 'customer' && user._id === query.customer?._id) ||
+              (user.role === 'consultant' && query.consultant && user._id === (typeof query.consultant === 'object' ? query.consultant._id : query.consultant))) && (
+              <form onSubmit={handleSubmit} className="bg-gray-50 p-4 rounded mt-6 space-y-4">
+                <div>
+                  <label htmlFor="response" className="block text-sm font-medium text-gray-700">Your Response</label>
+                  <textarea
+                    id="response"
+                    value={response}
+                    onChange={e => setResponse(e.target.value)}
+                    rows={4}
+                    className="mt-1 block w-full border border-gray-300 bg-white p-3 rounded text-gray-700 focus:border-primary focus:ring-primary sm:text-sm"
+                    required
+                  />
+                </div>
+                <div>
+                  <label htmlFor="responseFile" className="block text-sm font-medium text-gray-700">Attach File (optional)</label>
+                  <input
+                    id="responseFile"
+                    type="file"
+                    onChange={handleResponseFileChange}
+                    className="mt-1 block w-full text-sm text-gray-500"
+                  />
+                </div>
+                <div className="flex justify-end">
+                  <button type="submit" className="btn btn-primary">Submit Response</button>
+                </div>
+              </form>
+            )
           )}
         </div>
-
-        {/* Confirmation Modal for Mark as Resolved */}
-        {showResolveModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-            <div className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full">
-              <h2 className="text-lg font-bold mb-2">Confirm Resolution</h2>
-              <p className="mb-4 text-gray-700">Are you sure you want to mark this query as resolved? <b>This action is irreversible.</b></p>
-              <div className="flex justify-end gap-4">
-                <button
-                  className="btn border border-gray-300 text-gray-700 bg-white hover:bg-gray-100"
-                  onClick={() => setShowResolveModal(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  className="btn border border-primary text-primary bg-transparent hover:bg-primary/10"
-                  onClick={handleResolve}
-                >
-                  Yes, Mark as Resolved
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </Layout>
   );

@@ -50,7 +50,7 @@ export default function NewQuery() {
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm p-3"
               required
             />
           </div>
@@ -62,8 +62,8 @@ export default function NewQuery() {
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              rows={4}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              rows={5}
+              className="mt-1 block w-full border border-gray-300 bg-white p-3 rounded text-gray-700 focus:border-primary focus:ring-primary sm:text-sm"
               required
             />
           </div>

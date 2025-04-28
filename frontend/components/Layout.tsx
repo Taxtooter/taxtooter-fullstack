@@ -7,10 +7,8 @@ import { ReactNode } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
-
-interface LayoutProps {
-  children: ReactNode;
-}
+import { LayoutProps } from '../types';
+import Toast from './Toast';
 
 export default function Layout({ children }: LayoutProps) {
   const router = useRouter();
@@ -23,6 +21,7 @@ export default function Layout({ children }: LayoutProps) {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Toast />
       <nav className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
@@ -66,23 +65,40 @@ export default function Layout({ children }: LayoutProps) {
                   </Link>
                 )}
                 {user?.role === 'admin' && (
-                  <Link
-                    href="/all-queries"
-                    className={`${
-                      router.pathname === '/all-queries'
-                        ? 'border-primary text-gray-900'
-                        : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                    } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
-                  >
-                    All Queries
-                  </Link>
+                  <>
+                    <Link
+                      href="/all-queries"
+                      className={`${
+                        router.pathname === '/all-queries'
+                          ? 'border-primary text-gray-900'
+                          : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                      } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
+                    >
+                      All Queries
+                    </Link>
+                    <Link
+                      href="/admin/users"
+                      className={`${
+                        router.pathname === '/admin/users'
+                          ? 'border-primary text-gray-900'
+                          : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                      } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
+                    >
+                      User Management
+                    </Link>
+                  </>
                 )}
               </div>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:items-center">
               <div className="ml-3 relative">
                 <div className="flex items-center space-x-4">
-                  <span className="text-gray-700">{user?.name}</span>
+                  <Link
+                    href="/profile/edit"
+                    className="text-gray-700 hover:text-primary cursor-pointer"
+                  >
+                    {user?.name}
+                  </Link>
                   <button
                     onClick={handleLogout}
                     className="btn btn-secondary"

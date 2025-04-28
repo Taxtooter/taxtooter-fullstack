@@ -1,35 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import Layout from '../../components/Layout';
 import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
-
-interface Query {
-  _id: string;
-  title: string;
-  description: string;
-  status: string;
-  customer: {
-    name: string;
-    email: string;
-  };
-  consultant?: {
-    name: string;
-    email: string;
-  };
-}
-
-interface User {
-  _id: string;
-  name: string;
-  email: string;
-}
+import { Query, User } from '../../types';
+import { toast } from 'react-hot-toast';
+import QueryCard from '../../components/QueryCard';
 
 export default function AdminQueries() {
   const { user } = useAuth();
   const [queries, setQueries] = useState<Query[]>([]);
   const [consultants, setConsultants] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -40,35 +22,38 @@ export default function AdminQueries() {
               Authorization: `Bearer ${localStorage.getItem('token')}`
             }
           }),
-          axios.get('/api/users/consultants', {
+          axios.get('/api/users?role=consultant', {
             headers: {
               Authorization: `Bearer ${localStorage.getItem('token')}`
             }
           })
         ]);
+        
         setQueries(queriesResponse.data);
         setConsultants(consultantsResponse.data);
-      } catch (err) {
+        setError(null);
+      } catch (error) {
+        console.error('Error fetching data:', error);
         setError('Failed to fetch data');
+        toast.error('Failed to fetch data');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
-  }, []);
+    if (user?.role === 'admin') {
+      fetchData();
+    }
+  }, [user]);
 
   const handleAssignQuery = async (queryId: string, consultantId: string) => {
     try {
-      await axios.patch(
-        `/api/queries/${queryId}/assign`,
-        { consultantId },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
-          }
+      await axios.post(`/api/queries/${queryId}/assign`, { consultantId }, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
         }
-      );
+      });
+      toast.success('Query assigned successfully');
       // Refresh queries
       const response = await axios.get('/api/queries', {
         headers: {
@@ -76,8 +61,9 @@ export default function AdminQueries() {
         }
       });
       setQueries(response.data);
-    } catch (err) {
-      setError('Failed to assign query');
+    } catch (error) {
+      console.error('Error assigning query:', error);
+      toast.error('Failed to assign query');
     }
   };
 
@@ -102,52 +88,13 @@ export default function AdminQueries() {
 
         <div className="grid gap-6">
           {queries.map((query) => (
-            <div key={query._id} className="card">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900">{query.title}</h3>
-                  <p className="mt-1 text-sm text-gray-500">{query.description}</p>
-                </div>
-                <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                  query.status === 'open' ? 'bg-yellow-100 text-yellow-800' :
-                  query.status === 'assigned' ? 'bg-blue-100 text-blue-800' :
-                  'bg-green-100 text-green-800'
-                }`}>
-                  {query.status}
-                </span>
-              </div>
-              
-              <div className="mt-4">
-                <div className="text-sm text-gray-500">
-                  <span className="font-medium">Customer:</span> {query.customer.name}
-                </div>
-                {query.consultant && (
-                  <div className="text-sm text-gray-500">
-                    <span className="font-medium">Consultant:</span> {query.consultant.name}
-                  </div>
-                )}
-              </div>
-
-              {query.status === 'open' && (
-                <div className="mt-4">
-                  <label htmlFor={`consultant-${query._id}`} className="block text-sm font-medium text-gray-700">
-                    Assign to Consultant
-                  </label>
-                  <select
-                    id={`consultant-${query._id}`}
-                    className="input mt-1"
-                    onChange={(e) => handleAssignQuery(query._id, e.target.value)}
-                  >
-                    <option value="">Select a consultant</option>
-                    {consultants.map((consultant) => (
-                      <option key={consultant._id} value={consultant._id}>
-                        {consultant.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-            </div>
+            <QueryCard
+              key={query._id}
+              query={query}
+              showActions={true}
+              onAssign={handleAssignQuery}
+              consultants={consultants}
+            />
           ))}
         </div>
       </div>

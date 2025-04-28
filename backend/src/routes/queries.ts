@@ -30,7 +30,8 @@ router.get('/assigned', authenticate, authorize(['consultant']), async (req: Aut
     }
     logger.info('Fetching assigned queries for consultant', { userId: req.user.id });
     const queries = await Query.find({ consultant: req.user.id })
-      .populate('customer', 'name email');
+      .populate('customer', 'name email')
+      .populate('consultant', 'name email');
     logger.info(`Found ${queries.length} assigned queries`);
     res.json(queries);
   } catch (error) {
@@ -48,6 +49,7 @@ router.get('/my-queries', authenticate, authorize(['customer']), async (req: Aut
     }
     logger.info('Fetching queries for customer', { userId: req.user.id });
     const queries = await Query.find({ customer: req.user.id })
+      .populate('customer', 'name email')
       .populate('consultant', 'name email');
     logger.info(`Found ${queries.length} queries for customer`);
     res.json(queries);

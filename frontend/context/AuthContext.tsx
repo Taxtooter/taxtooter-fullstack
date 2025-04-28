@@ -1,21 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
-
-interface User {
-  id: string;
-  email: string;
-  name: string;
-  role: 'admin' | 'consultant' | 'customer';
-}
-
-interface AuthContextType {
-  user: User | null;
-  token: string | null;
-  login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name: string, role: string) => Promise<void>;
-  logout: () => void;
-  loading: boolean;
-}
+import { User, AuthContextType } from '../types';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -39,7 +24,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const response = await axios.get('/api/auth/me', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setUser(response.data);
+      const u = response.data;
+      setUser({ ...u, _id: u._id || u.id, id: u.id || u._id });
     } catch (error) {
       console.error('Error fetching user:', error);
       localStorage.removeItem('token');
@@ -51,18 +37,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     const response = await axios.post('/api/auth/login', { email, password });
-    const { token, user } = response.data;
+    const { token, user: u } = response.data;
     localStorage.setItem('token', token);
     setToken(token);
-    setUser(user);
+    setUser({ ...u, _id: u._id || u.id, id: u.id || u._id });
   };
 
   const register = async (email: string, password: string, name: string, role: string) => {
     const response = await axios.post('/api/auth/register', { email, password, name, role });
-    const { token, user } = response.data;
+    const { token, user: u } = response.data;
     localStorage.setItem('token', token);
     setToken(token);
-    setUser(user);
+    setUser({ ...u, _id: u._id || u.id, id: u.id || u._id });
   };
 
   const logout = () => {
@@ -71,8 +57,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
   };
 
+  const updateUser = (updatedUser: User) => {
+    setUser(updatedUser);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout, loading }}>
+    <AuthContext.Provider value={{ user, token, login, register, logout, loading, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

@@ -2,10 +2,9 @@ const log = (level: string, message: string, data?: any) => {
   const timestamp = new Date().toISOString();
   const logMessage = `[${timestamp}] [${level.toUpperCase()}] ${message}`;
   
-  // Ensure logs are flushed to stdout
-  process.stdout.write(logMessage + '\n');
+  console.log(logMessage);
   if (data) {
-    process.stdout.write(JSON.stringify(data, null, 2) + '\n');
+    console.log(JSON.stringify(data, null, 2));
   }
 };
 

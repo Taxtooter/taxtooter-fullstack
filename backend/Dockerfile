@@ -5,6 +5,7 @@ WORKDIR /app
 COPY package*.json ./
 
 RUN npm install
+RUN npm install -g nodemon
 
 COPY . .
 
@@ -13,4 +14,4 @@ COPY dist ./dist
 
 EXPOSE 5000
 
-CMD ["npm", "run", "start"] 
+CMD ["nodemon", "--watch", "src", "--ext", "ts", "--exec", "ts-node", "src/index.ts"] 
