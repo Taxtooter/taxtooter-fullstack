@@ -44,7 +44,7 @@ export default function Queries() {
     <Layout>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900">My Queries</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">My Queries</h1>
           <Link
             href="/queries/new"
             className="btn btn-primary"

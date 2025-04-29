@@ -71,7 +71,7 @@ export default function CreateConsultant() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
               Name
             </label>
             <input
@@ -81,12 +81,12 @@ export default function CreateConsultant() {
               value={formData.name}
               onChange={handleChange}
               required
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+              className="input mt-1"
             />
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
               Email
             </label>
             <input
@@ -96,12 +96,12 @@ export default function CreateConsultant() {
               value={formData.email}
               onChange={handleChange}
               required
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+              className="input mt-1"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
               Password
             </label>
             <input
@@ -112,12 +112,12 @@ export default function CreateConsultant() {
               onChange={handleChange}
               required
               minLength={6}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+              className="input mt-1"
             />
           </div>
 
           <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
               Confirm Password
             </label>
             <input
@@ -128,7 +128,7 @@ export default function CreateConsultant() {
               onChange={handleChange}
               required
               minLength={6}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+              className="input mt-1"
             />
           </div>
 

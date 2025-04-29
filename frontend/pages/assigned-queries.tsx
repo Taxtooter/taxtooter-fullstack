@@ -70,7 +70,7 @@ export default function AssignedQueries() {
   return (
     <Layout>
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-gray-900">Assigned Queries</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Assigned Queries</h1>
         {loading && <div>Loading...</div>}
         {error && <div className="text-red-500 text-sm text-center">{error}</div>}
         <div className="grid gap-6">
