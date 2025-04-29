@@ -9,7 +9,7 @@ export interface Query {
     _id: string;
     title: string;
     description: string;
-    status: 'pending' | 'in_progress' | 'resolved';
+    status: 'pending' | 'in_progress' | 'resolved' | 'open';
     customer?: User;
     consultant?: User;
     responses?: {

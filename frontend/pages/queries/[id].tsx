@@ -191,6 +191,27 @@ export default function QueryDetail() {
               <span className="font-medium text-gray-900 dark:text-gray-100">{query.consultant.name} ({query.consultant.email})</span>
             </div>
           )}
+          {user?.role === 'admin' && query.status === 'open' && !query.consultant && (
+            <div className="mb-4">
+              <label htmlFor="assignConsultant" className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                Assign to Consultant
+              </label>
+              <select
+                id="assignConsultant"
+                className="input mt-1"
+                defaultValue=""
+                onChange={e => e.target.value && handleAssignConsultant(e.target.value)}
+                disabled={assignLoading}
+              >
+                <option value="">Select a consultant</option>
+                {consultants.map(consultant => (
+                  <option key={consultant._id} value={consultant._id}>
+                    {consultant.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           {query.responses && query.responses.length > 0 && (
             <div className="mb-4">
               <h2 className="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">Responses</h2>
