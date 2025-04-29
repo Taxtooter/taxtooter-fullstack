@@ -1,63 +1,81 @@
-import express from 'express';
-import mongoose from 'mongoose';
-import Query from '../models/Query';
-import { authenticate, authorize, AuthRequest } from '../middleware/auth';
-import User from '../models/User';
-import { logger } from '../utils/logger';
-import multer from 'multer';
-import path from 'path';
+import express from "express";
+import mongoose from "mongoose";
+import Query from "../models/Query";
+import { authenticate, authorize, AuthRequest } from "../middleware/auth";
+import User from "../models/User";
+import { logger } from "../utils/logger";
+import multer from "multer";
+import path from "path";
 
 const router = express.Router();
 
 const storage = multer.diskStorage({
-  // @ts-ignore
-  destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, '../../uploads'));
-  },
-  // @ts-ignore
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + '-' + file.originalname);
-  }
+    // @ts-ignore
+    destination: (req, file, cb) => {
+        cb(null, path.join(__dirname, "../../uploads"));
+    },
+    // @ts-ignore
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + "-" + file.originalname);
+    },
 });
 const upload = multer({ storage });
 
 // Get assigned queries (Consultant)
-router.get('/assigned', authenticate, authorize(['consultant']), async (req: AuthRequest, res) => {
-  try {
-    if (!req.user) {
-      logger.warn('No user found in request');
-      return res.status(401).json({ message: 'Authentication required' });
-    }
-    logger.info('Fetching assigned queries for consultant', { userId: req.user.id });
-    const queries = await Query.find({ consultant: req.user.id })
-      .populate('customer', 'name email')
-      .populate('consultant', 'name email');
-    logger.info(`Found ${queries.length} assigned queries`);
-    res.json(queries);
-  } catch (error) {
-    logger.error('Error fetching assigned queries', error);
-    res.status(500).json({ message: 'Error fetching queries' });
-  }
-});
+router.get(
+    "/assigned",
+    authenticate,
+    authorize(["consultant"]),
+    async (req: AuthRequest, res) => {
+        try {
+            if (!req.user) {
+                logger.warn("No user found in request");
+                return res
+                    .status(401)
+                    .json({ message: "Authentication required" });
+            }
+            logger.info("Fetching assigned queries for consultant", {
+                userId: req.user.id,
+            });
+            const queries = await Query.find({ consultant: req.user.id })
+                .populate("customer", "name email")
+                .populate("consultant", "name email");
+            logger.info(`Found ${queries.length} assigned queries`);
+            res.json(queries);
+        } catch (error) {
+            logger.error("Error fetching assigned queries", error);
+            res.status(500).json({ message: "Error fetching queries" });
+        }
+    },
+);
 
 // Get my queries (customer)
-router.get('/my-queries', authenticate, authorize(['customer']), async (req: AuthRequest, res) => {
-  try {
-    if (!req.user) {
-      logger.warn('No user found in request');
-      return res.status(401).json({ message: 'Authentication required' });
-    }
-    logger.info('Fetching queries for customer', { userId: req.user.id });
-    const queries = await Query.find({ customer: req.user.id })
-      .populate('customer', 'name email')
-      .populate('consultant', 'name email');
-    logger.info(`Found ${queries.length} queries for customer`);
-    res.json(queries);
-  } catch (error) {
-    logger.error('Error fetching customer queries', error);
-    res.status(500).json({ message: 'Error fetching queries' });
-  }
-});
+router.get(
+    "/my-queries",
+    authenticate,
+    authorize(["customer"]),
+    async (req: AuthRequest, res) => {
+        try {
+            if (!req.user) {
+                logger.warn("No user found in request");
+                return res
+                    .status(401)
+                    .json({ message: "Authentication required" });
+            }
+            logger.info("Fetching queries for customer", {
+                userId: req.user.id,
+            });
+            const queries = await Query.find({ customer: req.user.id })
+                .populate("customer", "name email")
+                .populate("consultant", "name email");
+            logger.info(`Found ${queries.length} queries for customer`);
+            res.json(queries);
+        } catch (error) {
+            logger.error("Error fetching customer queries", error);
+            res.status(500).json({ message: "Error fetching queries" });
+        }
+    },
+);
 
 /**
  * @swagger
@@ -78,41 +96,52 @@ router.get('/my-queries', authenticate, authorize(['customer']), async (req: Aut
  *       404:
  *         description: Query not found
  */
-router.get('/:id', authenticate, async (req: AuthRequest, res) => {
-  try {
-    logger.info('Fetching query with ID', { queryId: req.params.id });
-    const query = await Query.findById(req.params.id)
-      .populate('customer', 'name email')
-      .populate('consultant', 'name email');
-    
-    if (!query) {
-      logger.warn('Query not found', { queryId: req.params.id });
-      return res.status(404).json({ message: 'Query not found' });
-    }
+router.get("/:id", authenticate, async (req: AuthRequest, res) => {
+    try {
+        logger.info("Fetching query with ID", { queryId: req.params.id });
+        const query = await Query.findById(req.params.id)
+            .populate("customer", "name email")
+            .populate("consultant", "name email");
 
-    // Check authorization
-    if (req.user?.role === 'customer' && query.customer._id.toString() !== req.user.id) {
-      logger.warn('Unauthorized customer access', {
-        userId: req.user.id,
-        queryCustomerId: query.customer._id
-      });
-      return res.status(403).json({ message: 'Not authorized to view this query' });
-    }
+        if (!query) {
+            logger.warn("Query not found", { queryId: req.params.id });
+            return res.status(404).json({ message: "Query not found" });
+        }
 
-    if (req.user?.role === 'consultant' && (!query.consultant || query.consultant._id.toString() !== req.user.id)) {
-      logger.warn('Unauthorized consultant access', {
-        userId: req.user.id,
-        queryConsultantId: query.consultant?._id
-      });
-      return res.status(403).json({ message: 'Not authorized to view this query' });
-    }
+        // Check authorization
+        if (
+            req.user?.role === "customer" &&
+            query.customer._id.toString() !== req.user.id
+        ) {
+            logger.warn("Unauthorized customer access", {
+                userId: req.user.id,
+                queryCustomerId: query.customer._id,
+            });
+            return res
+                .status(403)
+                .json({ message: "Not authorized to view this query" });
+        }
 
-    logger.info('Query fetched successfully', { queryId: query._id });
-    res.json(query);
-  } catch (error) {
-    logger.error('Error fetching query', error);
-    res.status(500).json({ message: 'Error fetching query' });
-  }
+        if (
+            req.user?.role === "consultant" &&
+            (!query.consultant ||
+                query.consultant._id.toString() !== req.user.id)
+        ) {
+            logger.warn("Unauthorized consultant access", {
+                userId: req.user.id,
+                queryConsultantId: query.consultant?._id,
+            });
+            return res
+                .status(403)
+                .json({ message: "Not authorized to view this query" });
+        }
+
+        logger.info("Query fetched successfully", { queryId: query._id });
+        res.json(query);
+    } catch (error) {
+        logger.error("Error fetching query", error);
+        res.status(500).json({ message: "Error fetching query" });
+    }
 });
 
 /**
@@ -136,28 +165,35 @@ router.get('/:id', authenticate, async (req: AuthRequest, res) => {
  *       201:
  *         description: Query created
  */
-router.post('/', authenticate, authorize(['customer']), async (req: AuthRequest, res) => {
-  try {
-    if (!req.user) {
-      logger.warn('No user found in request');
-      return res.status(401).json({ message: 'Authentication required' });
-    }
-    logger.info('Creating new query for user', { userId: req.user.id });
-    const { title, description } = req.body;
-    const query = new Query({
-      title,
-      description,
-      customer: req.user.id,
-      status: 'open'
-    });
-    await query.save();
-    logger.info('Query created successfully', { queryId: query._id });
-    res.status(201).json(query);
-  } catch (error) {
-    logger.error('Error creating query', error);
-    res.status(500).json({ message: 'Error creating query' });
-  }
-});
+router.post(
+    "/",
+    authenticate,
+    authorize(["customer"]),
+    async (req: AuthRequest, res) => {
+        try {
+            if (!req.user) {
+                logger.warn("No user found in request");
+                return res
+                    .status(401)
+                    .json({ message: "Authentication required" });
+            }
+            logger.info("Creating new query for user", { userId: req.user.id });
+            const { title, description } = req.body;
+            const query = new Query({
+                title,
+                description,
+                customer: req.user.id,
+                status: "open",
+            });
+            await query.save();
+            logger.info("Query created successfully", { queryId: query._id });
+            res.status(201).json(query);
+        } catch (error) {
+            logger.error("Error creating query", error);
+            res.status(500).json({ message: "Error creating query" });
+        }
+    },
+);
 
 /**
  * @swagger
@@ -169,51 +205,61 @@ router.post('/', authenticate, authorize(['customer']), async (req: AuthRequest,
  *       200:
  *         description: List of queries
  */
-router.get('/', authenticate, authorize(['admin']), async (req: AuthRequest, res) => {
-  try {
-    logger.info('Fetching all queries for admin');
-    const queries = await Query.find()
-      .populate('customer', 'name email')
-      .populate('consultant', 'name email');
-    logger.info(`Found ${queries.length} queries`);
-    res.json(queries);
-  } catch (error) {
-    logger.error('Error fetching all queries', error);
-    res.status(500).json({ message: 'Error fetching queries' });
-  }
-});
+router.get(
+    "/",
+    authenticate,
+    authorize(["admin"]),
+    async (req: AuthRequest, res) => {
+        try {
+            logger.info("Fetching all queries for admin");
+            const queries = await Query.find()
+                .populate("customer", "name email")
+                .populate("consultant", "name email");
+            logger.info(`Found ${queries.length} queries`);
+            res.json(queries);
+        } catch (error) {
+            logger.error("Error fetching all queries", error);
+            res.status(500).json({ message: "Error fetching queries" });
+        }
+    },
+);
 
 // Assign query to consultant (Admin only)
-router.post('/:id/assign', authenticate, authorize(['admin']), async (req: AuthRequest, res) => {
-  try {
-    const { consultantId } = req.body;
-    logger.info('Assigning query', {
-      queryId: req.params.id,
-      consultantId
-    });
+router.post(
+    "/:id/assign",
+    authenticate,
+    authorize(["admin"]),
+    async (req: AuthRequest, res) => {
+        try {
+            const { consultantId } = req.body;
+            logger.info("Assigning query", {
+                queryId: req.params.id,
+                consultantId,
+            });
 
-    const query = await Query.findById(req.params.id);
-    if (!query) {
-      logger.warn('Query not found', { queryId: req.params.id });
-      return res.status(404).json({ message: 'Query not found' });
-    }
+            const query = await Query.findById(req.params.id);
+            if (!query) {
+                logger.warn("Query not found", { queryId: req.params.id });
+                return res.status(404).json({ message: "Query not found" });
+            }
 
-    const consultant = await User.findById(consultantId);
-    if (!consultant || consultant.role !== 'consultant') {
-      logger.warn('Invalid consultant', { consultantId });
-      return res.status(400).json({ message: 'Invalid consultant' });
-    }
+            const consultant = await User.findById(consultantId);
+            if (!consultant || consultant.role !== "consultant") {
+                logger.warn("Invalid consultant", { consultantId });
+                return res.status(400).json({ message: "Invalid consultant" });
+            }
 
-    query.consultant = new mongoose.Types.ObjectId(consultantId);
-    query.status = 'assigned';
-    await query.save();
-    logger.info('Query assigned successfully', { queryId: query._id });
-    res.json(query);
-  } catch (error) {
-    logger.error('Error assigning query', error);
-    res.status(500).json({ message: 'Error assigning query' });
-  }
-});
+            query.consultant = new mongoose.Types.ObjectId(consultantId);
+            query.status = "assigned";
+            await query.save();
+            logger.info("Query assigned successfully", { queryId: query._id });
+            res.json(query);
+        } catch (error) {
+            logger.error("Error assigning query", error);
+            res.status(500).json({ message: "Error assigning query" });
+        }
+    },
+);
 
 /**
  * @swagger
@@ -244,108 +290,159 @@ router.post('/:id/assign', authenticate, authorize(['admin']), async (req: AuthR
  *       200:
  *         description: Response added to query
  */
-router.post('/:id/respond', authenticate, authorize(['consultant', 'admin', 'customer']), upload.single('file'), async (req: AuthRequest, res) => {
-  try {
-    if (!req.user) {
-      logger.warn('No user found in request');
-      return res.status(401).json({ message: 'Authentication required' });
-    }
+router.post(
+    "/:id/respond",
+    authenticate,
+    authorize(["consultant", "admin", "customer"]),
+    upload.single("file"),
+    async (req: AuthRequest, res) => {
+        try {
+            if (!req.user) {
+                logger.warn("No user found in request");
+                return res
+                    .status(401)
+                    .json({ message: "Authentication required" });
+            }
 
-    logger.info('Responding to query', {
-      queryId: req.params.id,
-      userId: req.user.id,
-      role: req.user.role
-    });
+            logger.info("Responding to query", {
+                queryId: req.params.id,
+                userId: req.user.id,
+                role: req.user.role,
+            });
 
-    const query = await Query.findById(req.params.id);
-    if (!query) {
-      logger.warn('Query not found', { queryId: req.params.id });
-      return res.status(404).json({ message: 'Query not found' });
-    }
+            const query = await Query.findById(req.params.id);
+            if (!query) {
+                logger.warn("Query not found", { queryId: req.params.id });
+                return res.status(404).json({ message: "Query not found" });
+            }
 
-    // Check authorization based on role
-    if (req.user.role === 'customer' && query.customer.toString() !== req.user.id) {
-      logger.warn('Unauthorized customer response', {
-        userId: req.user.id,
-        queryCustomerId: query.customer.toString()
-      });
-      return res.status(403).json({ message: 'Not authorized to respond to this query' });
-    }
+            // Check authorization based on role
+            if (
+                req.user.role === "customer" &&
+                query.customer.toString() !== req.user.id
+            ) {
+                logger.warn("Unauthorized customer response", {
+                    userId: req.user.id,
+                    queryCustomerId: query.customer.toString(),
+                });
+                return res
+                    .status(403)
+                    .json({
+                        message: "Not authorized to respond to this query",
+                    });
+            }
 
-    // Prevent consultants from responding to resolved queries
-    if (req.user.role === 'consultant' && query.status === 'resolved') {
-      logger.warn('Consultant attempted to respond to resolved query', {
-        userId: req.user.id,
-        queryId: query._id
-      });
-      return res.status(403).json({ message: 'Cannot respond to a resolved query' });
-    }
+            // Prevent consultants from responding to resolved queries
+            if (req.user.role === "consultant" && query.status === "resolved") {
+                logger.warn(
+                    "Consultant attempted to respond to resolved query",
+                    {
+                        userId: req.user.id,
+                        queryId: query._id,
+                    },
+                );
+                return res
+                    .status(403)
+                    .json({ message: "Cannot respond to a resolved query" });
+            }
 
-    // Only consultants need to be assigned to the query
-    if (req.user.role === 'consultant' && (!query.consultant || query.consultant.toString() !== req.user.id)) {
-      logger.warn('Unauthorized consultant response', {
-        userId: req.user.id,
-        queryConsultantId: query.consultant?.toString()
-      });
-      return res.status(403).json({ message: 'Not authorized to respond to this query' });
-    }
+            // Only consultants need to be assigned to the query
+            if (
+                req.user.role === "consultant" &&
+                (!query.consultant ||
+                    query.consultant.toString() !== req.user.id)
+            ) {
+                logger.warn("Unauthorized consultant response", {
+                    userId: req.user.id,
+                    queryConsultantId: query.consultant?.toString(),
+                });
+                return res
+                    .status(403)
+                    .json({
+                        message: "Not authorized to respond to this query",
+                    });
+            }
 
-    // @ts-ignore
-    const file = req.file;
-    const fileInfo = file ? { filename: file.filename, path: `/uploads/${file.filename}` } : null;
+            // @ts-ignore
+            const file = req.file;
+            const fileInfo = file
+                ? { filename: file.filename, path: `/uploads/${file.filename}` }
+                : null;
 
-    // Add the response to the responses array
-    const response = {
-      user: {
-        _id: new mongoose.Types.ObjectId(req.user.id),
-        name: req.user.name,
-        role: req.user.role
-      },
-      message: req.body.response,
-      createdAt: new Date(),
-      file: fileInfo
-    };
+            // Add the response to the responses array
+            const response = {
+                user: {
+                    _id: new mongoose.Types.ObjectId(req.user.id),
+                    name: req.user.name,
+                    role: req.user.role,
+                },
+                message: req.body.response,
+                createdAt: new Date(),
+                file: fileInfo,
+            };
 
-    if (!query.responses) {
-      query.responses = [];
-    }
-    query.responses.push(response);
+            if (!query.responses) {
+                query.responses = [];
+            }
+            query.responses.push(response);
 
-    await query.save();
-    logger.info('Response with file added successfully to query', { queryId: query._id });
-    res.json(query);
-  } catch (error) {
-    logger.error('Error responding to query', error);
-    res.status(500).json({ message: 'Error responding to query' });
-  }
-});
+            await query.save();
+            logger.info("Response with file added successfully to query", {
+                queryId: query._id,
+            });
+            res.json(query);
+        } catch (error) {
+            logger.error("Error responding to query", error);
+            res.status(500).json({ message: "Error responding to query" });
+        }
+    },
+);
 
 // Mark query as resolved (customer or admin only)
-router.post('/:id/resolve', authenticate, authorize(['customer', 'admin']), async (req: AuthRequest, res) => {
-  try {
-    if (!req.user) {
-      logger.warn('No user found in request');
-      return res.status(401).json({ message: 'Authentication required' });
-    }
-    logger.info('Resolving query', { queryId: req.params.id, userId: req.user.id, role: req.user.role });
-    const query = await Query.findById(req.params.id);
-    if (!query) {
-      logger.warn('Query not found', { queryId: req.params.id });
-      return res.status(404).json({ message: 'Query not found' });
-    }
-    // Only the customer who owns the query or an admin can resolve
-    if (req.user.role === 'customer' && query.customer.toString() !== req.user.id) {
-      logger.warn('Unauthorized customer resolve attempt', { userId: req.user.id, queryCustomerId: query.customer.toString() });
-      return res.status(403).json({ message: 'Not authorized to resolve this query' });
-    }
-    query.status = 'resolved';
-    await query.save();
-    logger.info('Query marked as resolved', { queryId: query._id });
-    res.json(query);
-  } catch (error) {
-    logger.error('Error resolving query', error);
-    res.status(500).json({ message: 'Error resolving query' });
-  }
-});
+router.post(
+    "/:id/resolve",
+    authenticate,
+    authorize(["customer", "admin"]),
+    async (req: AuthRequest, res) => {
+        try {
+            if (!req.user) {
+                logger.warn("No user found in request");
+                return res
+                    .status(401)
+                    .json({ message: "Authentication required" });
+            }
+            logger.info("Resolving query", {
+                queryId: req.params.id,
+                userId: req.user.id,
+                role: req.user.role,
+            });
+            const query = await Query.findById(req.params.id);
+            if (!query) {
+                logger.warn("Query not found", { queryId: req.params.id });
+                return res.status(404).json({ message: "Query not found" });
+            }
+            // Only the customer who owns the query or an admin can resolve
+            if (
+                req.user.role === "customer" &&
+                query.customer.toString() !== req.user.id
+            ) {
+                logger.warn("Unauthorized customer resolve attempt", {
+                    userId: req.user.id,
+                    queryCustomerId: query.customer.toString(),
+                });
+                return res
+                    .status(403)
+                    .json({ message: "Not authorized to resolve this query" });
+            }
+            query.status = "resolved";
+            await query.save();
+            logger.info("Query marked as resolved", { queryId: query._id });
+            res.json(query);
+        } catch (error) {
+            logger.error("Error resolving query", error);
+            res.status(500).json({ message: "Error resolving query" });
+        }
+    },
+);
 
-export default router; 
+export default router;

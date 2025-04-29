@@ -9,7 +9,7 @@ export interface Query {
     _id: string;
     title: string;
     description: string;
-    status: 'pending' | 'in_progress' | 'resolved' | 'open';
+    status: "pending" | "in_progress" | "resolved" | "open";
     customer?: User;
     consultant?: User;
     responses?: {
@@ -32,7 +32,12 @@ export interface AuthContextType {
     user: User | null;
     token: string | null;
     login: (email: string, password: string) => Promise<void>;
-    register: (email: string, password: string, name: string, role: string) => Promise<void>;
+    register: (
+        email: string,
+        password: string,
+        name: string,
+        role: string,
+    ) => Promise<void>;
     logout: () => void;
     loading: boolean;
     updateUser: (user: User) => void;
@@ -40,4 +45,4 @@ export interface AuthContextType {
 
 export interface LayoutProps {
     children: React.ReactNode;
-} 
+}
