@@ -7,6 +7,7 @@ import { logger } from '../../lib/logger';
 import { Query, Consultant, User } from '../../types';
 import { toast } from 'react-hot-toast';
 import QueryStatusBadge from '../../components/QueryStatusBadge';
+import Modal from '../../components/Modal';
 
 export default function QueryDetail() {
   const router = useRouter();
@@ -20,6 +21,8 @@ export default function QueryDetail() {
   const [consultants, setConsultants] = useState<Consultant[]>([]);
   const [assignLoading, setAssignLoading] = useState(false);
   const [showResolveModal, setShowResolveModal] = useState(false);
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [pendingConsultantId, setPendingConsultantId] = useState<string | null>(null);
 
   // Add file state for response form
   const [responseFile, setResponseFile] = useState<File | null>(null);
@@ -200,7 +203,11 @@ export default function QueryDetail() {
                 id="assignConsultant"
                 className="input mt-1"
                 defaultValue=""
-                onChange={e => e.target.value && handleAssignConsultant(e.target.value)}
+                onChange={e => {
+                  if (!e.target.value) return;
+                  setPendingConsultantId(e.target.value);
+                  setShowAssignModal(true);
+                }}
                 disabled={assignLoading}
               >
                 <option value="">Select a consultant</option>
@@ -210,6 +217,16 @@ export default function QueryDetail() {
                   </option>
                 ))}
               </select>
+            </div>
+          )}
+          {query.status !== 'resolved' && user && (user.role === 'admin' || (user.role === 'customer' && user._id === query.customer?._id)) && (
+            <div className="flex justify-end mb-4">
+              <button
+                className="btn btn-primary"
+                onClick={() => setShowResolveModal(true)}
+              >
+                Resolve Query
+              </button>
             </div>
           )}
           {query.responses && query.responses.length > 0 && (
@@ -261,6 +278,32 @@ export default function QueryDetail() {
               </form>
             )
           )}
+
+          {/* Assign Confirmation Modal */}
+          <Modal
+            open={showAssignModal}
+            onClose={() => setShowAssignModal(false)}
+            onConfirm={() => {
+              if (pendingConsultantId) handleAssignConsultant(pendingConsultantId);
+              setShowAssignModal(false);
+              setPendingConsultantId(null);
+            }}
+            title="Assign Consultant"
+            description="Are you sure you want to assign this query to the selected consultant? This action is irreversible."
+            confirmText="Assign"
+            cancelText="Cancel"
+          />
+
+          {/* Resolve Confirmation Modal */}
+          <Modal
+            open={showResolveModal}
+            onClose={() => setShowResolveModal(false)}
+            onConfirm={handleResolve}
+            title="Resolve Query"
+            description="Are you sure you want to resolve this query? This action is irreversible."
+            confirmText="Resolve"
+            cancelText="Cancel"
+          />
         </div>
       </div>
     </Layout>

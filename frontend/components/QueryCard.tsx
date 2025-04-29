@@ -1,6 +1,8 @@
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { Query } from '../types';
 import QueryStatusBadge from './QueryStatusBadge';
+import Modal from './Modal';
 
 interface QueryCardProps {
   query: Query;
@@ -35,6 +37,8 @@ const formatDate = (date: string) => {
 };
 
 export default function QueryCard({ query, showActions = false, onAssign, consultants }: QueryCardProps) {
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [pendingConsultantId, setPendingConsultantId] = useState<string | null>(null);
   return (
     <Link
       href={`/queries/${query._id}`}
@@ -68,7 +72,11 @@ export default function QueryCard({ query, showActions = false, onAssign, consul
           <select
             id={`consultant-${query._id}`}
             className="input mt-1"
-            onChange={(e) => onAssign && onAssign(query._id, e.target.value)}
+            onChange={(e) => {
+              if (!e.target.value) return;
+              setPendingConsultantId(e.target.value);
+              setShowAssignModal(true);
+            }}
           >
             <option value="">Select a consultant</option>
             {consultants.map((consultant) => (
@@ -77,6 +85,19 @@ export default function QueryCard({ query, showActions = false, onAssign, consul
               </option>
             ))}
           </select>
+          <Modal
+            open={showAssignModal}
+            onClose={() => setShowAssignModal(false)}
+            onConfirm={() => {
+              if (pendingConsultantId && onAssign) onAssign(query._id, pendingConsultantId);
+              setShowAssignModal(false);
+              setPendingConsultantId(null);
+            }}
+            title="Assign Consultant"
+            description="Are you sure you want to assign this query to the selected consultant? This action is irreversible."
+            confirmText="Assign"
+            cancelText="Cancel"
+          />
         </div>
       )}
     </Link>
