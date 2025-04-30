@@ -12,6 +12,9 @@ COPY . .
 # Build locally before docker build, then copy dist
 COPY dist ./dist
 
+# Create uploads directory
+RUN mkdir -p uploads
+
 EXPOSE 5000
 
 CMD ["nodemon", "--watch", "src", "--ext", "ts", "--exec", "ts-node", "src/index.ts"] 

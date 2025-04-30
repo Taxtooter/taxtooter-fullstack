@@ -16,6 +16,10 @@ export interface Query {
         message: string;
         user?: User;
         createdAt: string;
+        file?: {
+            filename?: string;
+            path?: string;
+        } | null;
     }[];
     createdAt: string;
     updatedAt: string;

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/router";
 import Layout from "../../components/Layout";
 import { useAuth } from "../../context/AuthContext";
@@ -28,6 +28,8 @@ export default function QueryDetail() {
 
     // Add file state for response form
     const [responseFile, setResponseFile] = useState<File | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [filePreviewUrl, setFilePreviewUrl] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchQuery = async () => {
@@ -73,6 +75,10 @@ export default function QueryDetail() {
     ) => {
         if (e.target.files && e.target.files[0]) {
             setResponseFile(e.target.files[0]);
+            setFilePreviewUrl(URL.createObjectURL(e.target.files[0]));
+        } else {
+            setResponseFile(null);
+            setFilePreviewUrl(null);
         }
     };
 
@@ -99,6 +105,8 @@ export default function QueryDetail() {
             setQuery(updatedResponse.data);
             setResponse("");
             setResponseFile(null);
+            setFilePreviewUrl(null);
+            if (fileInputRef.current) fileInputRef.current.value = "";
         } catch (error: any) {
             setError(
                 error.response?.data?.message || "Error submitting response",
@@ -297,6 +305,38 @@ export default function QueryDetail() {
                                         </div>
                                         <div className="text-gray-700 dark:text-gray-100">
                                             {resp.message}
+                                            {/* WhatsApp-like preview for file attachments in responses */}
+                                            {resp.file && resp.file.path && (
+                                                <div className="mt-2 flex items-center gap-2">
+                                                    {resp.file.filename?.match(/\.(jpg|jpeg|png|gif)$/i) ? (
+                                                        <a href={resp.file.path} target="_blank" rel="noopener noreferrer">
+                                                            <img
+                                                                src={resp.file.path}
+                                                                alt={resp.file.filename}
+                                                                className="h-16 w-16 object-cover rounded border"
+                                                            />
+                                                        </a>
+                                                    ) : resp.file.filename?.toLowerCase().endsWith(".pdf") ? (
+                                                        <a
+                                                            href={resp.file.path}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="flex items-center gap-1 text-blue-600 underline"
+                                                        >
+                                                            <span role="img" aria-label="PDF">📄</span> {resp.file.filename}
+                                                        </a>
+                                                    ) : (
+                                                        <a
+                                                            href={resp.file.path}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="flex items-center gap-1 text-blue-600 underline"
+                                                        >
+                                                            <span role="img" aria-label="File">📎</span> {resp.file.filename}
+                                                        </a>
+                                                    )}
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 ))}
@@ -345,12 +385,44 @@ export default function QueryDetail() {
                                     >
                                         Attach File (optional)
                                     </label>
-                                    <input
-                                        id="responseFile"
-                                        type="file"
-                                        onChange={handleResponseFileChange}
-                                        className="mt-1 block w-full text-sm text-gray-500"
-                                    />
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <label
+                                            htmlFor="responseFile"
+                                            className="btn btn-secondary cursor-pointer"
+                                        >
+                                            Choose file
+                                        </label>
+                                        <input
+                                            id="responseFile"
+                                            type="file"
+                                            ref={fileInputRef}
+                                            onChange={handleResponseFileChange}
+                                            className="hidden"
+                                        />
+                                        {responseFile && (
+                                            <span className="text-gray-800 dark:text-gray-200">{responseFile.name}</span>
+                                        )}
+                                    </div>
+                                    {/* WhatsApp-like preview for file being uploaded */}
+                                    {responseFile && filePreviewUrl && (
+                                        <div className="mt-2 flex items-center gap-2">
+                                            {responseFile.type.startsWith("image/") ? (
+                                                <img
+                                                    src={filePreviewUrl}
+                                                    alt="Preview"
+                                                    className="h-16 w-16 object-cover rounded border"
+                                                />
+                                            ) : responseFile.type === "application/pdf" ? (
+                                                <span className="flex items-center gap-1 text-gray-800">
+                                                    <span role="img" aria-label="PDF">📄</span> {responseFile.name}
+                                                </span>
+                                            ) : (
+                                                <span className="flex items-center gap-1 text-gray-800">
+                                                    <span role="img" aria-label="File">📎</span> {responseFile.name}
+                                                </span>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="flex justify-end">
                                     <button

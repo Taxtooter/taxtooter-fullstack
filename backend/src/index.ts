@@ -12,11 +12,18 @@ import path from "path";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "./swagger";
 import { logger } from "./utils/logger";
+import fs from "fs";
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// Ensure uploads directory exists
+const uploadsDir = path.join(__dirname, "../uploads");
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+}
 
 // Middleware
 app.use(cors());

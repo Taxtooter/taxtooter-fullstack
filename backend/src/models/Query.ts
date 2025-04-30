@@ -14,6 +14,10 @@ export interface IQuery extends mongoose.Document {
         };
         message: string;
         createdAt: Date;
+        file?: {
+            filename: string;
+            path: string;
+        } | null;
     }>;
     createdAt: Date;
     updatedAt: Date;
@@ -66,6 +70,10 @@ const querySchema = new mongoose.Schema(
                 createdAt: {
                     type: Date,
                     default: Date.now,
+                },
+                file: {
+                    filename: { type: String },
+                    path: { type: String },
                 },
             },
         ],
