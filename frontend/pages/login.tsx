@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { useAuth } from "../context/AuthContext";
+import PasswordInput from "../components/PasswordInput";
 
 export default function Login() {
     const [email, setEmail] = useState("");
@@ -49,15 +50,13 @@ export default function Login() {
                             <label htmlFor="password" className="sr-only">
                                 Password
                             </label>
-                            <input
+                            <PasswordInput
                                 id="password"
                                 name="password"
-                                type="password"
-                                required
-                                className="input rounded-b-md"
-                                placeholder="Password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
+                                placeholder="Password"
+                                className="rounded-b-md"
                             />
                         </div>
                     </div>

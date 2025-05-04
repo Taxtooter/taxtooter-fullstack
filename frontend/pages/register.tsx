@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { useAuth } from "../context/AuthContext";
+import PasswordInput from "../components/PasswordInput";
 
 export default function Register() {
     const [formData, setFormData] = useState({
@@ -80,15 +81,12 @@ export default function Register() {
                             <label htmlFor="password" className="sr-only">
                                 Password
                             </label>
-                            <input
+                            <PasswordInput
                                 id="password"
                                 name="password"
-                                type="password"
-                                required
-                                className="input"
-                                placeholder="Password"
                                 value={formData.password}
                                 onChange={handleChange}
+                                placeholder="Password"
                             />
                         </div>
                         <div>
