@@ -1,33 +1,9 @@
 import Link from "next/link";
+import Layout from "../components/Layout";
 
 export default function Home() {
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            {/* Navigation */}
-            <nav className="bg-white dark:bg-gray-800 shadow-lg">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between h-16">
-                        <div className="flex items-center">
-                            <span className="text-xl font-bold text-indigo-600 dark:text-indigo-400">TaxTooter</span>
-                        </div>
-                        <div className="flex items-center space-x-4">
-                            <Link href="/gst-act" className="text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 px-3 py-2 rounded-md text-sm font-medium">
-                                GST Act
-                            </Link>
-                            <Link href="/gst-rules" className="text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 px-3 py-2 rounded-md text-sm font-medium">
-                                GST Rules
-                            </Link>
-                            <Link href="/login" className="text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 px-3 py-2 rounded-md text-sm font-medium">
-                                Login
-                            </Link>
-                            <Link href="/register" className="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 dark:hover:bg-indigo-500">
-                                Register
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-            </nav>
-
+        <Layout>
             {/* Hero Section */}
             <div className="relative bg-white dark:bg-gray-800 overflow-hidden">
                 <div className="max-w-7xl mx-auto">
@@ -102,6 +78,6 @@ export default function Home() {
                     </div>
                 </div>
             </div>
-        </div>
+        </Layout>
     );
 }
