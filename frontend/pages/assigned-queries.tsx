@@ -3,18 +3,7 @@ import Layout from "../components/Layout";
 import axios from "axios";
 import Link from "next/link";
 import QueryCard from "../components/QueryCard";
-
-interface Query {
-    _id: string;
-    title: string;
-    description: string;
-    status: string;
-    customer: {
-        name: string;
-        email: string;
-    };
-    response?: string;
-}
+import { Query } from "../types";
 
 export default function AssignedQueries() {
     const [queries, setQueries] = useState<Query[]>([]);

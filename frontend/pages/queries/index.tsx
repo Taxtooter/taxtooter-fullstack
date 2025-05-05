@@ -4,17 +4,7 @@ import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
 import Link from "next/link";
 import QueryCard from "../../components/QueryCard";
-
-interface Query {
-    _id: string;
-    title: string;
-    description: string;
-    status: string;
-    consultant?: {
-        name: string;
-        email: string;
-    };
-}
+import { Query } from "../../types";
 
 export default function Queries() {
     const [queries, setQueries] = useState<Query[]>([]);

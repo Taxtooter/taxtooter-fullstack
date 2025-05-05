@@ -17,6 +17,7 @@ export interface IQuery extends mongoose.Document {
         file?: {
             filename: string;
             path: string;
+            key: string;
         } | null;
     }>;
     createdAt: Date;
@@ -74,6 +75,7 @@ const querySchema = new mongoose.Schema(
                 file: {
                     filename: { type: String },
                     path: { type: String },
+                    key: { type: String },
                 },
             },
         ],

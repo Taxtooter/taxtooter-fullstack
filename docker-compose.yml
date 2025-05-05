@@ -28,10 +28,13 @@ services:
         volumes:
             - ./backend:/app
             - /app/node_modules
-            - uploads:/app/uploads
         environment:
             - NODE_ENV=development
             - MONGODB_URI=mongodb://mongodb:27017/taxtooter
+            - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+            - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+            - AWS_REGION=${AWS_REGION}
+            - S3_BUCKET_NAME=${S3_BUCKET_NAME}
         depends_on:
             - mongodb
 
@@ -44,4 +47,3 @@ services:
 
 volumes:
     mongodb_data:
-    uploads:

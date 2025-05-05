@@ -34,9 +34,9 @@ app.use(requestLogger);
 app.use("/api/auth", authRoutes);
 app.use("/api/users", usersRouter);
 app.use("/api/queries", queryRoutes);
+app.use("/api/upload", uploadRouter);
 
 // Register upload route and serve static files
-app.use("/api/upload", uploadRouter);
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 // 404 handler

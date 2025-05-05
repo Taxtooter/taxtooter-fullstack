@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Layout from "../components/Layout";
 import { useAuth } from "../context/AuthContext";
@@ -15,6 +15,13 @@ export default function CreateConsultant() {
     });
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        // Redirect if not admin
+        if (user && user.role !== "admin") {
+            router.push("/dashboard");
+        }
+    }, [user, router]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -58,9 +65,8 @@ export default function CreateConsultant() {
         }
     };
 
-    // Redirect if not admin
-    if (user?.role !== "admin") {
-        router.push("/dashboard");
+    // Don't render if not admin
+    if (!user || user.role !== "admin") {
         return null;
     }
 

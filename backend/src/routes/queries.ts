@@ -5,21 +5,61 @@ import { authenticate, authorize, AuthRequest } from "../middleware/auth";
 import User from "../models/User";
 import { logger } from "../utils/logger";
 import multer from "multer";
-import path from "path";
+// @ts-ignore
+import multerS3 from "multer-s3";
+import { S3Client } from "@aws-sdk/client-s3";
+import { AwsCredentialIdentity } from "@aws-sdk/types";
 
 const router = express.Router();
 
-const storage = multer.diskStorage({
-    // @ts-ignore
-    destination: (req, file, cb) => {
-        cb(null, path.join(__dirname, "../../uploads"));
-    },
-    // @ts-ignore
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + "-" + file.originalname);
-    },
+// Define the S3 file type
+interface S3File extends Express.Multer.File {
+    location: string;
+    key: string;
+}
+
+// Validate required environment variables
+const requiredEnvVars = {
+    AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
+    AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
+    AWS_REGION: process.env.AWS_REGION,
+    S3_BUCKET_NAME: process.env.S3_BUCKET_NAME
+};
+
+// Check if any required environment variables are missing
+const missingEnvVars = Object.entries(requiredEnvVars)
+    .filter(([_, value]) => !value)
+    .map(([key]) => key);
+
+if (missingEnvVars.length > 0) {
+    logger.error("Missing required environment variables:", { missingEnvVars });
+    throw new Error(`Missing required environment variables: ${missingEnvVars.join(", ")}`);
+}
+
+// Create AWS credentials object
+const credentials: AwsCredentialIdentity = {
+    accessKeyId: requiredEnvVars.AWS_ACCESS_KEY_ID as string,
+    secretAccessKey: requiredEnvVars.AWS_SECRET_ACCESS_KEY as string
+};
+
+const s3Client = new S3Client({
+    region: requiredEnvVars.AWS_REGION as string,
+    credentials
 });
-const upload = multer({ storage });
+
+const BUCKET_NAME = requiredEnvVars.S3_BUCKET_NAME as string;
+
+const upload = multer({
+    storage: multerS3({
+        s3: s3Client,
+        bucket: BUCKET_NAME,
+        acl: "private",
+        key: function (req: Express.Request, file: Express.Multer.File, cb: (error: any, key?: string) => void) {
+            const folder = process.env.NODE_ENV === "production" ? "prod/" : "local/";
+            cb(null, folder + Date.now() + "-" + file.originalname);
+        },
+    }),
+});
 
 // Get assigned queries (Consultant)
 router.get(
@@ -364,9 +404,13 @@ router.post(
             }
 
             // @ts-ignore
-            const file = req.file;
+            const file = req.file as S3File;
             const fileInfo = file
-                ? { filename: file.filename, path: `/uploads/${file.filename}` }
+                ? { 
+                    filename: file.originalname, 
+                    path: file.location,
+                    key: file.key 
+                }
                 : null;
 
             // Add the response to the responses array

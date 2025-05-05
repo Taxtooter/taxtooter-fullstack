@@ -9,7 +9,7 @@ export interface Query {
     _id: string;
     title: string;
     description: string;
-    status: "pending" | "in_progress" | "resolved" | "open";
+    status: "open" | "assigned" | "resolved";
     customer?: User;
     consultant?: User;
     responses?: {
@@ -19,6 +19,7 @@ export interface Query {
         file?: {
             filename?: string;
             path?: string;
+            key?: string;
         } | null;
     }[];
     createdAt: string;

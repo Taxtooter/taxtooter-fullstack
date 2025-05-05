@@ -31,6 +31,8 @@ export default function QueryDetail() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [filePreviewUrl, setFilePreviewUrl] = useState<string | null>(null);
 
+    const [signedImageUrls, setSignedImageUrls] = useState<Record<string, string>>({});
+
     useEffect(() => {
         const fetchQuery = async () => {
             try {
@@ -69,6 +71,24 @@ export default function QueryDetail() {
         };
         fetchConsultants();
     }, [user]);
+
+    useEffect(() => {
+        // Fetch signed URLs for all image files in responses
+        if (query && query.responses) {
+            query.responses.forEach(async (resp) => {
+                if (
+                    resp.file &&
+                    resp.file.key &&
+                    resp.file.filename?.match(/\.(jpg|jpeg|png|gif)$/i) &&
+                    !signedImageUrls[resp.file.key]
+                ) {
+                    const res = await fetch(`/api/upload/signed-url?key=${encodeURIComponent(resp.file.key)}`);
+                    const data = await res.json();
+                    setSignedImageUrls((prev) => ({ ...prev, [resp.file.key]: data.url }));
+                }
+            });
+        }
+    }, [query]);
 
     const handleResponseFileChange = (
         e: React.ChangeEvent<HTMLInputElement>,
@@ -168,6 +188,13 @@ export default function QueryDetail() {
                 error.response?.data?.message || "Failed to resolve query",
             );
         }
+    };
+
+    // Helper to get signed URL for S3 file
+    const getSignedUrl = async (key: string) => {
+        const res = await fetch(`/api/upload/signed-url?key=${encodeURIComponent(key)}`);
+        const data = await res.json();
+        return data.url;
     };
 
     if (loading) {
@@ -306,30 +333,43 @@ export default function QueryDetail() {
                                         <div className="text-gray-700 dark:text-gray-100">
                                             {resp.message}
                                             {/* WhatsApp-like preview for file attachments in responses */}
-                                            {resp.file && resp.file.path && (
+                                            {resp.file && resp.file.key && (
                                                 <div className="mt-2 flex items-center gap-2">
                                                     {resp.file.filename?.match(/\.(jpg|jpeg|png|gif)$/i) ? (
-                                                        <a href={resp.file.path} target="_blank" rel="noopener noreferrer">
+                                                        <a
+                                                            href="#"
+                                                            onClick={async (e) => {
+                                                                e.preventDefault();
+                                                                const url = await getSignedUrl(resp.file!.key!);
+                                                                window.open(url, "_blank");
+                                                            }}
+                                                        >
                                                             <img
-                                                                src={resp.file.path}
+                                                                src={signedImageUrls[resp.file.key] || ""}
                                                                 alt={resp.file.filename}
                                                                 className="h-16 w-16 object-cover rounded border"
                                                             />
                                                         </a>
                                                     ) : resp.file.filename?.toLowerCase().endsWith(".pdf") ? (
                                                         <a
-                                                            href={resp.file.path}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
+                                                            href="#"
+                                                            onClick={async (e) => {
+                                                                e.preventDefault();
+                                                                const url = await getSignedUrl(resp.file!.key!);
+                                                                window.open(url, "_blank");
+                                                            }}
                                                             className="flex items-center gap-1 text-blue-600 underline"
                                                         >
                                                             <span role="img" aria-label="PDF">📄</span> {resp.file.filename}
                                                         </a>
                                                     ) : (
                                                         <a
-                                                            href={resp.file.path}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
+                                                            href="#"
+                                                            onClick={async (e) => {
+                                                                e.preventDefault();
+                                                                const url = await getSignedUrl(resp.file!.key!);
+                                                                window.open(url, "_blank");
+                                                            }}
                                                             className="flex items-center gap-1 text-blue-600 underline"
                                                         >
                                                             <span role="img" aria-label="File">📎</span> {resp.file.filename}
