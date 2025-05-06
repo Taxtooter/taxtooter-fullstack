@@ -193,7 +193,7 @@ router.get("/:id", authenticate, async (req: AuthRequest, res) => {
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             properties:
@@ -201,6 +201,9 @@ router.get("/:id", authenticate, async (req: AuthRequest, res) => {
  *                 type: string
  *               description:
  *                 type: string
+ *               file:
+ *                 type: string
+ *                 format: binary
  *     responses:
  *       201:
  *         description: Query created
@@ -209,6 +212,7 @@ router.post(
     "/",
     authenticate,
     authorize(["customer"]),
+    upload.single("file"),
     async (req: AuthRequest, res) => {
         try {
             if (!req.user) {
@@ -219,11 +223,32 @@ router.post(
             }
             logger.info("Creating new query for user", { userId: req.user.id });
             const { title, description } = req.body;
+
+            // @ts-ignore
+            const file = req.file as S3File;
+            const fileInfo = file
+                ? { 
+                    filename: file.originalname, 
+                    path: file.location,
+                    key: file.key 
+                }
+                : null;
+
             const query = new Query({
                 title,
                 description,
                 customer: req.user.id,
                 status: "open",
+                responses: [{
+                    user: {
+                        _id: new mongoose.Types.ObjectId(req.user.id),
+                        name: req.user.name,
+                        role: req.user.role,
+                    },
+                    message: description,
+                    createdAt: new Date(),
+                    file: fileInfo,
+                }]
             });
             await query.save();
             logger.info("Query created successfully", { queryId: query._id });

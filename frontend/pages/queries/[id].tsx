@@ -8,6 +8,7 @@ import { Query, Consultant, User } from "../../types";
 import { toast } from "react-hot-toast";
 import QueryStatusBadge from "../../components/QueryStatusBadge";
 import Modal from "../../components/Modal";
+import FileUpload from "../../components/FileUpload";
 
 export default function QueryDetail() {
     const router = useRouter();
@@ -28,8 +29,6 @@ export default function QueryDetail() {
 
     // Add file state for response form
     const [responseFile, setResponseFile] = useState<File | null>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
-    const [filePreviewUrl, setFilePreviewUrl] = useState<string | null>(null);
 
     const [signedImageUrls, setSignedImageUrls] = useState<Record<string, string>>({});
 
@@ -90,18 +89,6 @@ export default function QueryDetail() {
         }
     }, [query]);
 
-    const handleResponseFileChange = (
-        e: React.ChangeEvent<HTMLInputElement>,
-    ) => {
-        if (e.target.files && e.target.files[0]) {
-            setResponseFile(e.target.files[0]);
-            setFilePreviewUrl(URL.createObjectURL(e.target.files[0]));
-        } else {
-            setResponseFile(null);
-            setFilePreviewUrl(null);
-        }
-    };
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!query || !response.trim()) return;
@@ -125,8 +112,6 @@ export default function QueryDetail() {
             setQuery(updatedResponse.data);
             setResponse("");
             setResponseFile(null);
-            setFilePreviewUrl(null);
-            if (fileInputRef.current) fileInputRef.current.value = "";
         } catch (error: any) {
             setError(
                 error.response?.data?.message || "Error submitting response",
@@ -418,52 +403,7 @@ export default function QueryDetail() {
                                         required
                                     />
                                 </div>
-                                <div>
-                                    <label
-                                        htmlFor="responseFile"
-                                        className="block text-sm font-medium text-gray-700"
-                                    >
-                                        Attach File (optional)
-                                    </label>
-                                    <div className="flex items-center gap-2 mt-1">
-                                        <label
-                                            htmlFor="responseFile"
-                                            className="btn btn-secondary cursor-pointer"
-                                        >
-                                            Choose file
-                                        </label>
-                                        <input
-                                            id="responseFile"
-                                            type="file"
-                                            ref={fileInputRef}
-                                            onChange={handleResponseFileChange}
-                                            className="hidden"
-                                        />
-                                        {responseFile && (
-                                            <span className="text-gray-800 dark:text-gray-200">{responseFile.name}</span>
-                                        )}
-                                    </div>
-                                    {/* WhatsApp-like preview for file being uploaded */}
-                                    {responseFile && filePreviewUrl && (
-                                        <div className="mt-2 flex items-center gap-2">
-                                            {responseFile.type.startsWith("image/") ? (
-                                                <img
-                                                    src={filePreviewUrl}
-                                                    alt="Preview"
-                                                    className="h-16 w-16 object-cover rounded border"
-                                                />
-                                            ) : responseFile.type === "application/pdf" ? (
-                                                <span className="flex items-center gap-1 text-gray-800">
-                                                    <span role="img" aria-label="PDF">📄</span> {responseFile.name}
-                                                </span>
-                                            ) : (
-                                                <span className="flex items-center gap-1 text-gray-800">
-                                                    <span role="img" aria-label="File">📎</span> {responseFile.name}
-                                                </span>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
+                                <FileUpload onFileSelect={setResponseFile} />
                                 <div className="flex justify-end">
                                     <button
                                         type="submit"
