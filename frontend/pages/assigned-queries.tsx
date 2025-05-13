@@ -36,7 +36,7 @@ export default function AssignedQueries() {
 
         try {
             await axios.post(
-                `/api/queries/${selectedQuery._id}/respond`,
+                `/api/queries/${selectedQuery.id}/respond`,
                 { response },
                 {
                     headers: {
@@ -46,7 +46,7 @@ export default function AssignedQueries() {
             );
             setQueries(
                 queries.map((q) =>
-                    q._id === selectedQuery._id
+                    q.id === selectedQuery.id
                         ? { ...q, response, status: "resolved" }
                         : q,
                 ),
@@ -72,7 +72,7 @@ export default function AssignedQueries() {
                 )}
                 <div className="grid gap-6">
                     {queries.map((query) => (
-                        <QueryCard key={query._id} query={query} />
+                        <QueryCard key={query.id} query={query} />
                     ))}
                 </div>
             </div>

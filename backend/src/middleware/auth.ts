@@ -37,16 +37,16 @@ export const authenticate = async (
         ) as UserPayload;
         logger.info("Token decoded", { decoded });
 
-        const user = await User.findById(decoded.id).select("-password");
+        const user = await User.findById(decoded.id);
         if (!user) {
             logger.warn("User not found", { userId: decoded.id });
             return res.status(401).json({ message: "User not found" });
         }
 
         req.user = {
-            id: user._id.toString(),
+            id: user.id,
             role: user.role,
-            name: decoded.name,
+            name: user.name,
         };
         logger.info("Authentication successful", { user: req.user });
         next();
@@ -58,25 +58,14 @@ export const authenticate = async (
 
 export const authorize = (roles: string[]) => {
     return (req: AuthRequest, res: Response, next: NextFunction) => {
-        logger.info("Authorizing request", {
-            user: req.user,
-            requiredRoles: roles,
-        });
-
         if (!req.user) {
-            logger.warn("No user in request");
             return res.status(401).json({ message: "Authentication required" });
         }
 
         if (!roles.includes(req.user.role)) {
-            logger.warn("Access denied", {
-                userRole: req.user.role,
-                requiredRoles: roles,
-            });
-            return res.status(403).json({ message: "Access denied" });
+            return res.status(403).json({ message: "Unauthorized" });
         }
 
-        logger.info("Authorization successful");
         next();
     };
 };

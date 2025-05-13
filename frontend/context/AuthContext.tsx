@@ -27,7 +27,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
                 headers: { Authorization: `Bearer ${token}` },
             });
             const u = response.data;
-            setUser({ ...u, _id: u._id || u.id, id: u.id || u._id });
+            setUser({ ...u, id: u.id });
         } catch (error) {
             console.error("Error fetching user:", error);
             localStorage.removeItem("token");
@@ -45,7 +45,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         const { token, user: u } = response.data;
         localStorage.setItem("token", token);
         setToken(token);
-        setUser({ ...u, _id: u._id || u.id, id: u.id || u._id });
+        setUser({ ...u, id: u.id });
     };
 
     const register = async (
@@ -63,7 +63,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         const { token, user: u } = response.data;
         localStorage.setItem("token", token);
         setToken(token);
-        setUser({ ...u, _id: u._id || u.id, id: u.id || u._id });
+        setUser({ ...u, id: u.id });
     };
 
     const logout = () => {

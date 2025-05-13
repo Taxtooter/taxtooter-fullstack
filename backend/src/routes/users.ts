@@ -22,9 +22,7 @@ router.get(
     async (req: AuthRequest, res) => {
         try {
             logger.info("Fetching all consultants");
-            const consultants = await User.find({ role: "consultant" }).select(
-                "_id name email",
-            );
+            const consultants = await User.find({ role: "consultant" }, "id,name,email");
             logger.info(`Found ${consultants.length} consultants`);
             res.json(consultants);
         } catch (error) {
@@ -41,11 +39,8 @@ router.get(
     authorize(["admin"]),
     async (req: AuthRequest, res) => {
         try {
-            logger.info("Fetching all users", {
-                user: req.user,
-                headers: req.headers,
-            });
-            const users = await User.find().select("_id name email role");
+            logger.info("Fetching all users");
+            const users = await User.find({});
             logger.info(`Found ${users.length} users`);
             res.json(users);
         } catch (error) {
@@ -55,13 +50,44 @@ router.get(
     },
 );
 
+// Get user by ID
+router.get(
+    "/:id",
+    authenticate,
+    async (req: AuthRequest, res) => {
+        try {
+            if (!req.user) {
+                return res.status(401).json({ message: "Authentication required" });
+            }
+
+            // Only allow users to view their own profile or admins to view any profile
+            if (req.user.id !== req.params.id && req.user.role !== "admin") {
+                return res.status(403).json({ message: "Not authorized" });
+            }
+
+            const user = await User.findById(req.params.id);
+            if (!user) {
+                return res.status(404).json({ message: "User not found" });
+            }
+
+            res.json(user);
+        } catch (error) {
+            logger.error("Error fetching user", error);
+            res.status(500).json({ message: "Error fetching user" });
+        }
+    },
+);
+
 // Get user profile
 router.get("/profile", authenticate, async (req: AuthRequest, res) => {
     try {
-        logger.info("Fetching user profile", { userId: req.user?.id });
-        const user = await User.findById(req.user?.id).select("-password");
+        if (!req.user?.id) {
+            return res.status(401).json({ message: "Authentication required" });
+        }
+        logger.info("Fetching user profile", { userId: req.user.id });
+        const user = await User.findById(req.user.id, "-password");
         if (!user) {
-            logger.warn("User profile not found", { userId: req.user?.id });
+            logger.warn("User profile not found", { userId: req.user.id });
             return res.status(404).json({ message: "User not found" });
         }
         logger.info("User profile fetched successfully");
@@ -72,65 +98,41 @@ router.get("/profile", authenticate, async (req: AuthRequest, res) => {
     }
 });
 
-// Update user profile
-router.put("/profile", authenticate, async (req: AuthRequest, res) => {
-    try {
-        logger.info("Updating user profile", { userId: req.user?.id });
-        const { name, email, password } = req.body;
-        const user = await User.findById(req.user?.id);
-
-        if (!user) {
-            logger.warn("User not found for profile update", {
-                userId: req.user?.id,
-            });
-            return res.status(404).json({ message: "User not found" });
-        }
-
-        if (name) user.name = name;
-        if (email) user.email = email;
-        if (password) user.password = password;
-
-        await user.save();
-        logger.info("Profile updated successfully");
-        res.json({ message: "Profile updated successfully" });
-    } catch (error) {
-        logger.error("Error updating profile", error);
-        res.status(500).json({ message: "Error updating profile" });
-    }
-});
-
-// Update any user's profile (admin only)
+// Update user
 router.put(
     "/:id",
     authenticate,
-    authorize(["admin"]),
     async (req: AuthRequest, res) => {
         try {
-            logger.info("Admin updating user profile", {
-                adminId: req.user?.id,
-                targetUserId: req.params.id,
-            });
+            if (!req.user) {
+                return res.status(401).json({ message: "Authentication required" });
+            }
 
-            const { name, email, role } = req.body;
+            // Only allow users to update their own profile or admins to update any profile
+            if (req.user.id !== req.params.id && req.user.role !== "admin") {
+                return res.status(403).json({ message: "Not authorized" });
+            }
+
             const user = await User.findById(req.params.id);
-
             if (!user) {
-                logger.warn("User not found for admin update", {
-                    userId: req.params.id,
-                });
                 return res.status(404).json({ message: "User not found" });
             }
 
-            if (name) user.name = name;
-            if (email) user.email = email;
-            if (role) user.role = role;
+            // Update user fields
+            const updatedUser = await User.update(req.params.id, {
+                name: req.body.name || user.name,
+                email: req.body.email || user.email,
+                role: req.user.role === "admin" ? (req.body.role || user.role) : user.role,
+            });
 
-            await user.save();
-            logger.info("User profile updated by admin successfully");
-            res.json({ message: "User profile updated successfully" });
+            if (!updatedUser) {
+                return res.status(500).json({ message: "Error updating user" });
+            }
+
+            res.json(updatedUser);
         } catch (error) {
-            logger.error("Error updating user profile by admin", error);
-            res.status(500).json({ message: "Error updating user profile" });
+            logger.error("Error updating user", error);
+            res.status(500).json({ message: "Error updating user" });
         }
     },
 );
@@ -142,15 +144,16 @@ router.delete(
     authorize(["admin"]),
     async (req: AuthRequest, res) => {
         try {
-            logger.info("Deleting user", { userId: req.params.id });
-            const user = await User.findByIdAndDelete(req.params.id);
+            const user = await User.findById(req.params.id);
             if (!user) {
-                logger.warn("User not found for deletion", {
-                    userId: req.params.id,
-                });
                 return res.status(404).json({ message: "User not found" });
             }
-            logger.info("User deleted successfully");
+
+            const deletedUser = await User.delete(req.params.id);
+            if (!deletedUser) {
+                return res.status(500).json({ message: "Error deleting user" });
+            }
+
             res.json({ message: "User deleted successfully" });
         } catch (error) {
             logger.error("Error deleting user", error);

@@ -8,7 +8,7 @@ interface QueryCardProps {
     query: Query;
     showActions?: boolean;
     onAssign?: (queryId: string, consultantId: string) => void;
-    consultants?: Array<{ _id: string; name: string }>;
+    consultants?: Array<{ id: string; name: string }>;
 }
 
 const dateOptions: Intl.DateTimeFormatOptions = {
@@ -27,10 +27,10 @@ const formatDate = (date: string) => {
         day % 10 === 1 && day !== 11
             ? "st"
             : day % 10 === 2 && day !== 12
-              ? "nd"
-              : day % 10 === 3 && day !== 13
-                ? "rd"
-                : "th";
+                ? "nd"
+                : day % 10 === 3 && day !== 13
+                    ? "rd"
+                    : "th";
     const month = d.toLocaleString(undefined, { month: "long" });
     const year = d.getFullYear();
     let hour = d.getHours();
@@ -53,7 +53,7 @@ export default function QueryCard({
     >(null);
     return (
         <Link
-            href={`/queries/${query._id}`}
+            href={`/queries/${query.id}`}
             className="card hover:shadow-lg transition-shadow"
         >
             <div className="flex justify-between items-start">
@@ -89,13 +89,13 @@ export default function QueryCard({
             {showActions && query.status === "open" && consultants && (
                 <div className="mt-4">
                     <label
-                        htmlFor={`consultant-${query._id}`}
+                        htmlFor={`consultant-${query.id}`}
                         className="block text-sm font-medium text-gray-700 dark:text-gray-200"
                     >
                         Assign to Consultant
                     </label>
                     <select
-                        id={`consultant-${query._id}`}
+                        id={`consultant-${query.id}`}
                         className="input mt-1"
                         onChange={(e) => {
                             if (!e.target.value) return;
@@ -105,7 +105,7 @@ export default function QueryCard({
                     >
                         <option value="">Select a consultant</option>
                         {consultants.map((consultant) => (
-                            <option key={consultant._id} value={consultant._id}>
+                            <option key={consultant.id} value={consultant.id}>
                                 {consultant.name}
                             </option>
                         ))}
@@ -115,7 +115,7 @@ export default function QueryCard({
                         onClose={() => setShowAssignModal(false)}
                         onConfirm={() => {
                             if (pendingConsultantId && onAssign)
-                                onAssign(query._id, pendingConsultantId);
+                                onAssign(query.id, pendingConsultantId);
                             setShowAssignModal(false);
                             setPendingConsultantId(null);
                         }}

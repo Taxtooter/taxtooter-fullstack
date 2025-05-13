@@ -1,6 +1,5 @@
 import express from "express";
 import cors from "cors";
-import mongoose from "mongoose";
 import dotenv from "dotenv";
 import authRoutes from "./routes/auth";
 import queryRoutes from "./routes/queries";
@@ -13,6 +12,9 @@ import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "./swagger";
 import { logger } from "./utils/logger";
 import fs from "fs";
+import { supabase } from "./config/supabase";
+import { initializeRedis } from "./config/redis";
+import User from "./models/User";
 
 dotenv.config();
 
@@ -32,8 +34,8 @@ app.use(requestLogger);
 
 // Routes
 app.use("/api/auth", authRoutes);
-app.use("/api/users", usersRouter);
 app.use("/api/queries", queryRoutes);
+app.use("/api/users", usersRouter);
 app.use("/api/upload", uploadRouter);
 
 // Register upload route and serve static files
@@ -59,15 +61,16 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // Error handling middleware
 app.use(errorHandler);
 
-// MongoDB connection
-mongoose
-    .connect(process.env.MONGODB_URI || "mongodb://localhost:27017/taxtooter")
-    .then(async () => {
-        console.log("Connected to MongoDB");
+// Initialize app
+const initializeApp = async () => {
+    try {
+        // Initialize Redis
+        await initializeRedis();
+
         // Create default admin user if not exists
-        const User = (await import("./models/User")).default;
         const adminEmail = "nischaya.gq@gmail.com";
         const adminExists = await User.findOne({ email: adminEmail });
+
         if (!adminExists) {
             await User.create({
                 name: "Nischaya Sharma",
@@ -75,14 +78,21 @@ mongoose
                 password: "password123#",
                 role: "admin",
             });
-            console.log("Default admin user created.");
+            logger.info("Default admin user created");
         } else {
-            console.log("Admin user already exists.");
+            logger.info("Admin user already exists");
         }
+
         app.listen(PORT, () => {
-            console.log(`Server is running on port ${PORT}`);
+            logger.info(`Server is running on port ${PORT}`);
         });
-    })
-    .catch((error) => {
-        console.error("MongoDB connection error:", error);
-    });
+    } catch (error) {
+        logger.error("Error initializing app:", {
+            error: error instanceof Error ? error.message : 'Unknown error',
+            stack: error instanceof Error ? error.stack : undefined
+        });
+        process.exit(1);
+    }
+};
+
+initializeApp();

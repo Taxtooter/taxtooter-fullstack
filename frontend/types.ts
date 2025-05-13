@@ -1,12 +1,12 @@
 export interface User {
-    _id: string;
+    id: string;
     name: string;
     email: string;
     role: string;
 }
 
 export interface Query {
-    _id: string;
+    id: string;
     title: string;
     description: string;
     status: "open" | "assigned" | "resolved";
@@ -27,7 +27,7 @@ export interface Query {
 }
 
 export interface Consultant {
-    _id: string;
+    id: string;
     name: string;
     email: string;
     role: string;

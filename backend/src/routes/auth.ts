@@ -47,19 +47,17 @@ router.post("/register", async (req, res) => {
         }
 
         // Create new user
-        const user = new User({
+        const user = await User.create({
             email,
             password,
             name,
             role,
         });
 
-        await user.save();
-
         // Generate JWT token
         const token = jwt.sign(
             {
-                id: user._id,
+                id: user.id,
                 role: user.role,
                 name: user.name,
             },
@@ -70,7 +68,7 @@ router.post("/register", async (req, res) => {
         res.status(201).json({
             token,
             user: {
-                id: user._id,
+                id: user.id,
                 email: user.email,
                 name: user.name,
                 role: user.role,
@@ -114,7 +112,7 @@ router.post("/login", async (req, res) => {
         }
 
         // Check password
-        const isMatch = await user.comparePassword(password);
+        const isMatch = await User.comparePassword(user, password);
         if (!isMatch) {
             logger.warn("Password mismatch for user", { email });
             return res.status(401).json({ message: "Invalid credentials" });
@@ -123,7 +121,7 @@ router.post("/login", async (req, res) => {
         // Generate JWT token
         const token = jwt.sign(
             {
-                id: user._id,
+                id: user.id,
                 role: user.role,
                 name: user.name,
             },
@@ -134,7 +132,7 @@ router.post("/login", async (req, res) => {
         res.json({
             token,
             user: {
-                id: user._id,
+                id: user.id,
                 email: user.email,
                 name: user.name,
                 role: user.role,
@@ -164,13 +162,13 @@ router.get("/me", authenticate, async (req: AuthRequest, res) => {
             return res.status(401).json({ message: "Authentication required" });
         }
 
-        const user = await User.findById(req.user.id).select("-password");
+        const user = await User.findById(req.user.id, "-password");
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
 
         res.json({
-            id: user._id,
+            id: user.id,
             email: user.email,
             name: user.name,
             role: user.role,
@@ -188,9 +186,7 @@ router.get(
     authorize(["admin"]),
     async (req, res) => {
         try {
-            const consultants = await User.find({ role: "consultant" }).select(
-                "_id name email",
-            );
+            const consultants = await User.find({ role: "consultant" }, "_id name email");
             res.json(consultants);
         } catch (error) {
             res.status(500).json({ message: "Error fetching consultants" });
