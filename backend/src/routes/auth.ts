@@ -186,7 +186,7 @@ router.get(
     authorize(["admin"]),
     async (req, res) => {
         try {
-            const consultants = await User.find({ role: "consultant" }, "_id name email");
+            const consultants = await User.find({ role: "consultant" }, "id name email");
             res.json(consultants);
         } catch (error) {
             res.status(500).json({ message: "Error fetching consultants" });

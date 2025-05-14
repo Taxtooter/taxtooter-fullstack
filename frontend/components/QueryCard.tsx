@@ -72,12 +72,12 @@ export default function QueryCard({
                     <div className="border-t mt-4 pt-2 flex items-center gap-4 text-xs text-gray-400 dark:text-gray-400 border-gray-200 dark:border-gray-700">
                         <span>
                             🗓️ <span className="font-medium">Created:</span>{" "}
-                            {formatDate(query.createdAt)}
+                            {formatDate(query.created_at)}
                         </span>
                         <span>|</span>
                         <span>
                             🕒 <span className="font-medium">Updated:</span>{" "}
-                            {formatDate(query.updatedAt)}
+                            {formatDate(query.updated_at)}
                         </span>
                     </div>
                 </div>

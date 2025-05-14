@@ -106,7 +106,7 @@ export default function Dashboard() {
                 ) : (
                     <div className="grid gap-6">
                         {queries.map((query) => (
-                            <QueryCard key={query._id} query={query} />
+                            <QueryCard key={query.id} query={query} />
                         ))}
                     </div>
                 )}

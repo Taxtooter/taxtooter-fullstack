@@ -62,9 +62,9 @@ export default function AdminUsers() {
         if (!editingUser) return;
 
         try {
-            logger.info("Updating user", { userId: editingUser._id });
+            logger.info("Updating user", { userId: editingUser.id });
             const response = await api.put(
-                `/api/users/${editingUser._id}`,
+                `/api/users/${editingUser.id}`,
                 editForm,
             );
             logger.info("User updated successfully", response.data);
@@ -158,7 +158,7 @@ export default function AdminUsers() {
                             </thead>
                             <tbody>
                                 {users.map((user) => (
-                                    <tr key={user._id}>
+                                    <tr key={user.id}>
                                         <td className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100">
                                             {user.name}
                                         </td>
@@ -178,7 +178,7 @@ export default function AdminUsers() {
                                             <button
                                                 onClick={() =>
                                                     handleDelete(
-                                                        user._id,
+                                                        user.id,
                                                         user.role,
                                                     )
                                                 }

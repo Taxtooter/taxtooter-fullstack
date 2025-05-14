@@ -98,7 +98,7 @@ export default function AdminQueries() {
                 <div className="grid gap-6">
                     {queries.map((query) => (
                         <QueryCard
-                            key={query._id}
+                            key={query.id}
                             query={query}
                             showActions={true}
                             onAssign={handleAssignQuery}

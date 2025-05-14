@@ -97,7 +97,7 @@ export default function QueryDetail() {
             const formData = new FormData();
             formData.append("response", response.trim());
             if (responseFile) formData.append("file", responseFile);
-            await api.post(`/api/queries/${query._id}/respond`, formData, {
+            await api.post(`/api/queries/${query.id}/respond`, formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                     Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -124,7 +124,7 @@ export default function QueryDetail() {
         setAssignLoading(true);
         try {
             await api.post(
-                `/api/queries/${query._id}/assign`,
+                `/api/queries/${query.id}/assign`,
                 { consultantId },
                 {
                     headers: {
@@ -152,7 +152,7 @@ export default function QueryDetail() {
         setShowResolveModal(false);
         try {
             await api.post(
-                `/api/queries/${query._id}/resolve`,
+                `/api/queries/${query.id}/resolve`,
                 {},
                 {
                     headers: {
@@ -271,8 +271,8 @@ export default function QueryDetail() {
                                     </option>
                                     {consultants.map((consultant) => (
                                         <option
-                                            key={consultant._id}
-                                            value={consultant._id}
+                                            key={consultant.id}
+                                            value={consultant.id}
                                         >
                                             {consultant.name}
                                         </option>
@@ -284,7 +284,7 @@ export default function QueryDetail() {
                         user &&
                         (user.role === "admin" ||
                             (user.role === "customer" &&
-                                user._id === query.customer?._id)) && (
+                                user.id === query.customer?.id)) && (
                             <div className="flex justify-end mb-4">
                                 <button
                                     className="btn btn-primary"
@@ -374,13 +374,13 @@ export default function QueryDetail() {
                         user &&
                         (user.role === "admin" ||
                             (user.role === "customer" &&
-                                user._id === query.customer?._id) ||
+                                user.id === query.customer?.id) ||
                             (user.role === "consultant" &&
                                 query.consultant &&
-                                user._id ===
-                                    (typeof query.consultant === "object"
-                                        ? query.consultant._id
-                                        : query.consultant))) && (
+                                user.id ===
+                                (typeof query.consultant === "object"
+                                    ? query.consultant.id
+                                    : query.consultant))) && (
                             <form
                                 onSubmit={handleSubmit}
                                 className="bg-gray-50 p-4 rounded mt-6 space-y-4"

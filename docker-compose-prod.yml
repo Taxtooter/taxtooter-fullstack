@@ -11,6 +11,7 @@ services:
       - NODE_ENV=production
     depends_on:
       - backend
+    command: sh -c "npm run build && npm start"
 
   backend:
     build:
@@ -27,15 +28,9 @@ services:
       - S3_BUCKET_NAME=${S3_BUCKET_NAME}
       - PORT=5000
     depends_on:
-      - mongodb
       - redis
-
-  mongodb:
-    image: mongo:latest
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongodb_data:/data/db
+    env_file:
+      - ./backend/.env
 
   redis:
     image: redis:alpine
