@@ -114,15 +114,7 @@ router.post(
                 title,
                 description,
                 customer_id: req.user.id,
-                status: "open",
-                responses: [{
-                    user_id: req.user.id,
-                    user_name: req.user.name,
-                    user_role: req.user.role,
-                    message: description,
-                    created_at: new Date().toISOString(),
-                    file: fileInfo,
-                }]
+                status: "open"
             });
 
             // Clear cache for user's queries
@@ -207,7 +199,7 @@ router.post(
 router.post(
     "/:id/respond",
     authenticate,
-    authorize(["consultant", "customer"]),
+    authorize(["consultant", "customer", "admin"]),
     upload.single("file"),
     async (req: AuthRequest, res) => {
         try {
@@ -251,12 +243,15 @@ router.post(
 
             // Add the response to the responses array
             const response = {
+                query_id: req.params.id,
                 user_id: req.user.id,
                 user_name: req.user.name,
                 user_role: req.user.role,
                 message: req.body.response,
                 created_at: new Date().toISOString(),
-                file: fileInfo,
+                file_key: fileInfo ? fileInfo.key : null,
+                file_path: fileInfo ? fileInfo.path : null,
+                file_name: fileInfo ? fileInfo.filename : null,
             };
 
             const updatedQuery = await Query.addResponse(req.params.id, response);

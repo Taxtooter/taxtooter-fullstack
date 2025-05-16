@@ -307,59 +307,25 @@ export default function QueryDetail() {
                                     >
                                         <div className="flex justify-between items-center mb-1">
                                             <span className="font-medium">
-                                                {resp.user?.name}
+                                                {resp.user_name}
                                             </span>
                                             <span className="text-xs text-gray-400">
-                                                {new Date(
-                                                    resp.createdAt,
-                                                ).toLocaleString()}
+                                                {resp.created_at ? new Date(resp.created_at).toLocaleString() : "Invalid Date"}
                                             </span>
                                         </div>
                                         <div className="text-gray-700 dark:text-gray-100">
                                             {resp.message}
-                                            {/* WhatsApp-like preview for file attachments in responses */}
-                                            {resp.file && resp.file.key && (
+                                            {/* File attachment */}
+                                            {resp.file_key && resp.file_signed_url && resp.file_name && (
                                                 <div className="mt-2 flex items-center gap-2">
-                                                    {resp.file.filename?.match(/\.(jpg|jpeg|png|gif)$/i) ? (
-                                                        <a
-                                                            href="#"
-                                                            onClick={async (e) => {
-                                                                e.preventDefault();
-                                                                const url = await getSignedUrl(resp.file!.key!);
-                                                                window.open(url, "_blank");
-                                                            }}
-                                                        >
-                                                            <img
-                                                                src={signedImageUrls[resp.file.key] || ""}
-                                                                alt={resp.file.filename}
-                                                                className="h-16 w-16 object-cover rounded border"
-                                                            />
-                                                        </a>
-                                                    ) : resp.file.filename?.toLowerCase().endsWith(".pdf") ? (
-                                                        <a
-                                                            href="#"
-                                                            onClick={async (e) => {
-                                                                e.preventDefault();
-                                                                const url = await getSignedUrl(resp.file!.key!);
-                                                                window.open(url, "_blank");
-                                                            }}
-                                                            className="flex items-center gap-1 text-blue-600 underline"
-                                                        >
-                                                            <span role="img" aria-label="PDF">📄</span> {resp.file.filename}
-                                                        </a>
-                                                    ) : (
-                                                        <a
-                                                            href="#"
-                                                            onClick={async (e) => {
-                                                                e.preventDefault();
-                                                                const url = await getSignedUrl(resp.file!.key!);
-                                                                window.open(url, "_blank");
-                                                            }}
-                                                            className="flex items-center gap-1 text-blue-600 underline"
-                                                        >
-                                                            <span role="img" aria-label="File">📎</span> {resp.file.filename}
-                                                        </a>
-                                                    )}
+                                                    <a
+                                                        href={resp.file_signed_url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="flex items-center gap-1 text-blue-600 underline"
+                                                    >
+                                                        <span role="img" aria-label="File">📎</span> {resp.file_name}
+                                                    </a>
                                                 </div>
                                             )}
                                         </div>
