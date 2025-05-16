@@ -66,6 +66,8 @@ export class Query {
             title: q.title,
             description: q.description,
             status: q.status,
+            customer_id: q.customer_id,
+            consultant_id: q.consultant_id,
             customer: q.customer ? {
                 id: q.customer.id,
                 name: q.customer.name,
@@ -99,8 +101,8 @@ export class Query {
             })),
             createdAt: q.created_at,
             updatedAt: q.updated_at,
-            created_at: q.created_at, // for legacy code, can be removed later
-            updated_at: q.updated_at, // for legacy code, can be removed later
+            created_at: q.created_at,
+            updated_at: q.updated_at,
         };
     }
 
@@ -137,7 +139,15 @@ export class Query {
             }
         }
 
-        return await Query.formatQuery({ ...data, responses: responses || [] });
+        // Ensure customer_id and consultant_id are present at the top level
+        const queryWithIds = {
+            ...data,
+            customer_id: data.customer_id,
+            consultant_id: data.consultant_id,
+            responses: responses || []
+        };
+
+        return await Query.formatQuery(queryWithIds);
     }
 
     static async find(query: { customer_id?: string, consultant_id?: string }): Promise<IQuery[]> {

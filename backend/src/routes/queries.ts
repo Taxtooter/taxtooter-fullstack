@@ -311,10 +311,19 @@ router.get(
 
             // Only allow access if admin, assigned consultant, or the customer who owns the query
             const user = req.user;
+            // Add logging for debugging
+            logger.info("Authorization check for query access", {
+                userId: user?.id,
+                userIdType: typeof user?.id,
+                customerId: query.customer_id,
+                customerIdType: typeof query.customer_id,
+                consultantId: query.consultant_id,
+                consultantIdType: typeof query.consultant_id,
+            });
             if (
                 user?.role !== "admin" &&
-                user?.id !== query.customer_id &&
-                user?.id !== query.consultant_id
+                String(user?.id) !== String(query.customer_id) &&
+                String(user?.id) !== String(query.consultant_id)
             ) {
                 logger.warn("Unauthorized access to query", { userId: user?.id, queryId: query.id });
                 return res.status(403).json({ message: "Not authorized to view this query" });
