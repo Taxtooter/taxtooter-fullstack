@@ -18,6 +18,7 @@ export default function AdminUsers() {
         name: "",
         email: "",
         role: "",
+        password: "",
     });
     const [message, setMessage] = useState("");
 
@@ -55,6 +56,7 @@ export default function AdminUsers() {
             name: user.name,
             email: user.email,
             role: user.role,
+            password: "",
         });
     };
 
@@ -63,9 +65,14 @@ export default function AdminUsers() {
 
         try {
             logger.info("Updating user", { userId: editingUser.id });
+            // Only send password if not blank
+            const updatePayload = { ...editForm };
+            if (!editForm.password) {
+                delete updatePayload.password;
+            }
             const response = await api.put(
                 `/api/users/${editingUser.id}`,
-                editForm,
+                updatePayload,
             );
             logger.info("User updated successfully", response.data);
             toast.success("User updated successfully");
@@ -252,6 +259,23 @@ export default function AdminUsers() {
                                     </option>
                                     <option value="admin">Admin</option>
                                 </select>
+                            </div>
+                            <div className="mb-4">
+                                <label className="block text-gray-700 dark:text-gray-200 text-sm font-bold mb-2">
+                                    New Password (leave blank to keep current)
+                                </label>
+                                <input
+                                    type="password"
+                                    value={editForm.password}
+                                    onChange={(e) =>
+                                        setEditForm({
+                                            ...editForm,
+                                            password: e.target.value,
+                                        })
+                                    }
+                                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-100 dark:bg-gray-900 border-gray-300 dark:border-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    placeholder="Leave blank to keep current password"
+                                />
                             </div>
                             <div className="flex justify-end">
                                 <button

@@ -307,24 +307,24 @@ export default function QueryDetail() {
                                     >
                                         <div className="flex justify-between items-center mb-1">
                                             <span className="font-medium">
-                                                {resp.user_name}
+                                                {resp.user ? `${resp.user.name} (${resp.user.role})` : "Unknown"}
                                             </span>
                                             <span className="text-xs text-gray-400">
-                                                {resp.created_at ? new Date(resp.created_at).toLocaleString() : "Invalid Date"}
+                                                {resp.createdAt ? new Date(resp.createdAt).toLocaleString() : "Invalid Date"}
                                             </span>
                                         </div>
                                         <div className="text-gray-700 dark:text-gray-100">
                                             {resp.message}
                                             {/* File attachment */}
-                                            {resp.file_key && resp.file_signed_url && resp.file_name && (
+                                            {resp.file && resp.file.filename && resp.file.path && (
                                                 <div className="mt-2 flex items-center gap-2">
                                                     <a
-                                                        href={resp.file_signed_url}
+                                                        href={resp.file.path}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
                                                         className="flex items-center gap-1 text-blue-600 underline"
                                                     >
-                                                        <span role="img" aria-label="File">📎</span> {resp.file_name}
+                                                        <span role="img" aria-label="File">📎</span> {resp.file.filename}
                                                     </a>
                                                 </div>
                                             )}

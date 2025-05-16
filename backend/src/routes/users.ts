@@ -98,6 +98,43 @@ router.get("/profile", authenticate, async (req: AuthRequest, res) => {
     }
 });
 
+// Update own profile
+router.put(
+    "/profile",
+    authenticate,
+    async (req: AuthRequest, res) => {
+        try {
+            if (!req.user) {
+                return res.status(401).json({ message: "Authentication required" });
+            }
+
+            const user = await User.findById(req.user.id);
+            if (!user) {
+                return res.status(404).json({ message: "User not found" });
+            }
+
+            // Prepare update fields
+            const updateFields: any = {
+                name: req.body.name || user.name,
+                email: req.body.email || user.email,
+            };
+            if (req.body.password && req.body.password.trim() !== "") {
+                updateFields.password = req.body.password;
+            }
+
+            const updatedUser = await User.update(req.user.id, updateFields);
+            if (!updatedUser) {
+                return res.status(500).json({ message: "Error updating profile" });
+            }
+
+            res.json(updatedUser);
+        } catch (error) {
+            logger.error("Error updating profile", error);
+            res.status(500).json({ message: "Error updating profile" });
+        }
+    }
+);
+
 // Update user
 router.put(
     "/:id",

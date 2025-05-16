@@ -72,6 +72,13 @@ export class User {
     }
 
     static async update(id: string, updates: Partial<Omit<IUser, 'id'>>): Promise<IUser | null> {
+        // Hash password if present
+        if (updates.password && updates.password.trim() !== "") {
+            updates.password = crypto
+                .createHash('sha256')
+                .update(updates.password)
+                .digest('hex');
+        }
         const { data, error } = await supabase
             .from('users')
             .update(updates)

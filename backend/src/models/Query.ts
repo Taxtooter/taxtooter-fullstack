@@ -1,6 +1,7 @@
 import { supabase } from '../config/supabase';
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import User from "./User";
 
 export interface Response {
     id?: string;
@@ -52,6 +53,57 @@ async function getSignedUrlForKey(key: string): Promise<string | null> {
 }
 
 export class Query {
+    // Format a query object to match the frontend Query interface
+    static async formatQuery(q: any): Promise<any> {
+        // Gather all unique user_ids from responses
+        const userIds: string[] = Array.from(new Set((q.responses || []).map((resp: any) => resp.user_id).filter((id: any): id is string => Boolean(id))));
+        // Fetch all users in parallel
+        const users = (await Promise.all(userIds.map((id: string) => User.findById(id)))).filter((u): u is any => !!u);
+        const userMap = new Map(users.map(u => [u.id, u]));
+
+        return {
+            id: q.id,
+            title: q.title,
+            description: q.description,
+            status: q.status,
+            customer: q.customer ? {
+                id: q.customer.id,
+                name: q.customer.name,
+                email: q.customer.email,
+                role: 'customer',
+            } : undefined,
+            consultant: q.consultant ? {
+                id: q.consultant.id,
+                name: q.consultant.name,
+                email: q.consultant.email,
+                role: 'consultant',
+            } : undefined,
+            responses: await Promise.all((q.responses || []).map(async (resp: any) => {
+                const user = userMap.get(resp.user_id);
+                return {
+                    message: resp.message,
+                    user: user ? {
+                        id: user.id,
+                        name: user.name,
+                        email: user.email,
+                        role: user.role,
+                    } : undefined,
+                    user_role: user ? user.role : resp.user_role, // for legacy code, can be removed later
+                    createdAt: resp.created_at,
+                    file: resp.file_key || resp.file_path || resp.file_name ? {
+                        filename: resp.file_name,
+                        path: resp.file_signed_url || resp.file_path,
+                        key: resp.file_key,
+                    } : null,
+                };
+            })),
+            createdAt: q.created_at,
+            updatedAt: q.updated_at,
+            created_at: q.created_at, // for legacy code, can be removed later
+            updated_at: q.updated_at, // for legacy code, can be removed later
+        };
+    }
+
     static async findById(id: string): Promise<IQuery | null> {
         const { data, error } = await supabase
             .from('queries')
@@ -85,10 +137,7 @@ export class Query {
             }
         }
 
-        return {
-            ...data,
-            responses: responses || [],
-        } as unknown as IQuery;
+        return await Query.formatQuery({ ...data, responses: responses || [] });
     }
 
     static async find(query: { customer_id?: string, consultant_id?: string }): Promise<IQuery[]> {
@@ -126,10 +175,7 @@ export class Query {
                         }
                     }
                 }
-                return {
-                    ...q,
-                    responses: responses || [],
-                };
+                return await Query.formatQuery({ ...q, responses: responses || [] });
             })
         );
         return queries;

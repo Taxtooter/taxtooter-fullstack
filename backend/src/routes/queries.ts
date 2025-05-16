@@ -328,4 +328,45 @@ router.get(
     }
 );
 
+// Resolve a query (admin or assigned consultant)
+router.post(
+    "/:id/resolve",
+    authenticate,
+    authorize(["admin", "consultant"]),
+    async (req: AuthRequest, res) => {
+        try {
+            const query = await Query.findById(req.params.id);
+            if (!query) {
+                logger.warn("Query not found", { queryId: req.params.id });
+                return res.status(404).json({ message: "Query not found" });
+            }
+
+            // Only admin or assigned consultant can resolve
+            const user = req.user;
+            if (
+                user?.role !== "admin" &&
+                user?.id !== query.consultant_id
+            ) {
+                logger.warn("Unauthorized resolve attempt", { userId: user?.id, queryId: query.id });
+                return res.status(403).json({ message: "Not authorized to resolve this query" });
+            }
+
+            const updatedQuery = await Query.update(req.params.id, { status: "resolved" });
+            if (!updatedQuery) {
+                return res.status(500).json({ message: "Error resolving query" });
+            }
+
+            // Clear cache for both admin and user queries
+            await clearCache(`/api/queries`);
+            await clearCache(`/api/queries/my-queries`);
+
+            logger.info("Query resolved successfully", { queryId: updatedQuery.id });
+            res.json(updatedQuery);
+        } catch (error) {
+            logger.error("Error resolving query", error);
+            res.status(500).json({ message: "Error resolving query" });
+        }
+    }
+);
+
 export default router;
