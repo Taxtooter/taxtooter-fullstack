@@ -68,12 +68,12 @@ const initializeApp = async () => {
         await initializeRedis();
 
         // Create default admin user if not exists
-        const adminEmail = "nischaya.gq@gmail.com";
+        const adminEmail = "troubleshooter.xyz@gmail.com";
         const adminExists = await User.findOne({ email: adminEmail });
 
         if (!adminExists) {
             await User.create({
-                name: "Nischaya Sharma",
+                name: "Admin",
                 email: adminEmail,
                 password: "password123#",
                 role: "admin",
