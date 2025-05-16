@@ -77,9 +77,12 @@ export default function Dashboard() {
         const unanswered = queries.filter(isUnanswered);
         const awaiting = queries.filter(q => {
             if (!q.responses || q.responses.length === 0) return true;
+            // Find if the assigned consultant has replied
+            const consultantId = q.consultant?.id;
+            const consultantHasReplied = q.responses.some(r => r.user?.role === "consultant" && r.user?.id === consultantId);
+            // Awaiting if consultant has NOT replied and last response is from customer
             const last = q.responses[q.responses.length - 1];
-            // If last response is from customer, or no responses
-            return last.user?.role === "customer";
+            return !consultantHasReplied && last.user?.role === "customer";
         });
         return {
             assigned,
@@ -126,7 +129,7 @@ export default function Dashboard() {
             { label: "Unanswered", count: stats.unanswered.length, key: "unanswered", color: "bg-red-100 text-red-800" },
             { label: "Resolved", count: stats.resolved.length, key: "resolved", color: "bg-green-100 text-green-800" },
             { label: "Assigned", count: stats.assigned.length, key: "assigned", color: "bg-blue-100 text-blue-800" },
-            { label: "Awaiting Consultant's Answer", count: stats.awaiting.length, key: "awaiting", color: "bg-yellow-100 text-yellow-800" },
+            { label: "Awaiting Answer", count: stats.awaiting.length, key: "awaiting", color: "bg-yellow-100 text-yellow-800" },
         ];
         if (filter === "unanswered") filteredQueries = stats.unanswered;
         else if (filter === "resolved") filteredQueries = stats.resolved;
@@ -202,18 +205,35 @@ export default function Dashboard() {
                 </div>
 
                 {/* Stats Boxes */}
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-4">
-                    {statsBoxes.map(box => (
-                        <button
-                            key={box.key}
-                            className={`rounded-lg shadow p-4 flex flex-col items-center justify-center font-semibold text-lg transition border-2 border-transparent hover:border-primary focus:outline-none ${box.color} ${filter === box.key ? 'ring-2 ring-primary' : ''}`}
-                            onClick={() => setFilter(box.key)}
-                        >
-                            <span>{box.label}</span>
-                            <span className="text-2xl font-bold mt-1">{box.count}</span>
-                        </button>
-                    ))}
-                </div>
+                {user?.role === "admin" ? (
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-4">
+                        {statsBoxes.map(box => (
+                            <button
+                                key={box.key}
+                                className={`rounded-lg shadow p-4 flex flex-col items-center justify-center font-semibold text-lg transition border-2 border-transparent hover:border-primary focus:outline-none ${box.color} ${filter === box.key ? 'ring-2 ring-primary' : ''}`}
+                                onClick={() => setFilter(box.key)}
+                            >
+                                <span>{box.label}</span>
+                                <span className="text-2xl font-bold mt-1">{box.count}</span>
+                            </button>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="flex justify-center">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                            {statsBoxes.map(box => (
+                                <button
+                                    key={box.key}
+                                    className={`rounded-lg shadow p-4 flex flex-col items-center justify-center font-semibold text-lg transition border-2 border-transparent hover:border-primary focus:outline-none ${box.color} ${filter === box.key ? 'ring-2 ring-primary' : ''}`}
+                                    onClick={() => setFilter(box.key)}
+                                >
+                                    <span>{box.label}</span>
+                                    <span className="text-2xl font-bold mt-1">{box.count}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
                 {filter && (
                     <div className="mb-4 flex justify-end">
                         <button
